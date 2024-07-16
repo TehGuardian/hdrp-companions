@@ -27,56 +27,6 @@ Config.PetShop = {
     -- [2] = { name = 'stimulant_dog', price = 3, amount = 500, info = {}, type = 'item', slot = 2, },
 }
 
--- sell animals trap
-local animaltrap = {
-    ['a_c_armadillo_01'] =  100,
-    ['a_c_badger_01']    =  100,
-    ['a_c_chipmunk_01']  =  100,
-    ['a_c_muskrat_01'] 	 =  100,
-    ['a_c_possum_01'] 	 =  100,
-    ['a_c_rabbit_01'] 	 =  100,
-    ['a_c_raccoon_01'] 	 =  100,
-    ['a_c_rat_01'] 	 =  100,
-    ['a_c_rat_01-3'] 	 =  100,
-    ['a_c_rat_01-4'] 	 =  100,
-    ['a_c_squirrel_01']  =  100,
-    ['a_c_squirrel_01-2'] =  100,
-    ['a_c_squirrel_01-3'] =  100,
-    ['a_c_skunk_01']      =  100,
-}
-
-local birdtrap = {
-    ['a_c_bluejay_01'] 	 =  100,
-    ['a_c_cardinal_01']  =  100,
-    ['a_c_robin_01'] 	    =  100,
-    ['a_c_cedarwaxwing_01'] =  100,
-    ['a_c_crow_01'] 		=  100,
-    ['a_c_oriole_01'] 		=  100,
-    ['a_c_oriole_01-1'] 	=  100,
-    ['a_c_pigeon'] 		=  100,
-    ['a_c_songbird_01']     =  100,
-    ['a_c_songbird_01-1'] 	=  100,
-    ['a_c_sparrow_01'] 		=  100,
-    ['a_c_sparrow_01-2'] 	=  100,
-    ['a_c_woodpecker_01'] 	=  100,
-    ['a_c_woodpecker_02'] 	=  100,
-    ['a_c_carolinaparakeet_01'] =  100,
-}
-
-local reptiltrap = {
-    ['a_c_snake_01']         =  100,
-    ['a_c_snakeredboa_01'] 	 =  100,
-    ['a_c_snakeredboa_01-1'] =  100,
-    ['a_c_snakeredboa_01-2'] = 100,    
-    ['a_c_snakeblacktailrattle_01'] = 100,
-    ['a_c_snakeferdelance_01'] 		= 100,
-}
-
-local fishtrap = {
-    ['a_c_snakewater_01']         =  100,
-    ['a_c_snakewater_01-2']         =  100,
-}
-
 ---------------------------------
 -- shop/sell/stablepets locations
 ---------------------------------
@@ -97,9 +47,8 @@ Config.PetsLocations = {
 
         showblip = true,
         blipsprite = 'blip_taxidermist',
-        blipscale = 0.1,
-
-        shopdata = { animaltrap, birdtrap, reptiltrap, fishtrap}},
+        blipscale = 0.1
+},
     {
         stablepetid = 'blackwater',
 		name = Lang:t('label.petshop'),
@@ -117,9 +66,7 @@ Config.PetsLocations = {
         showblip = true,
         blipsprite = 'blip_taxidermist',
         blipscale = 0.1,
-        shopdata = { animaltrap, birdtrap, reptiltrap, fishtrap}},
 }
-
 
 ---------------------------------
 -- general settings
