@@ -8,7 +8,7 @@ local spawnedPetPeds = {}
 CreateThread(function()
     while true do
         Wait(500)
-        for k,v in pairs(Config.Shops) do
+        for k,v in pairs(Config.PetsLocations) do
             local playerCoords = GetEntityCoords(PlayerPedId())
             local distance = #(playerCoords - v.npccoords.xyz)
 
@@ -17,7 +17,6 @@ CreateThread(function()
                 spawnedPeds[k] = { spawnedPed = spawnedPed }
 				TaskStartScenarioInPlace(spawnedPed, joaat(v.scenario), -1, true)
             end
-            
             if distance >= Config.DistanceSpawn and spawnedPeds[k] then
                 if Config.FadeIn then
                     for i = 255, 0, -51 do
@@ -58,23 +57,6 @@ function NearPed(npcmodel, npccoords)
             SetEntityAlpha(spawnedPed, i, false)
         end
     end
-    -- if target is enabled
-    if Config.EnableTarget then
-        exports['rsg-target']:AddTargetEntity(spawnedPed, {
-            options = {
-                {
-                    icon = "fa-solid fa-paw",
-                    label = Lang:t('label.petshop'),
-                    targeticon = "fas fa-eye",
-                    action = function()
-                        TriggerEvent("tbrp_companions:client:openpetshop2")
-                    end
-                },
-            },
-            distance = 3.0,
-        })
-    end
-    return spawnedPed
 end
 
 --------------------------------------
@@ -84,7 +66,7 @@ end
 CreateThread(function()
     while true do
         Wait(500)
-        for k2,v2 in pairs(Config.Shops) do
+        for k2,v2 in pairs(Config.PetsLocations) do
             local playerCoords = GetEntityCoords(PlayerPedId())
             local distance = #(playerCoords - v2.npcpetcoords.xyz)
 
@@ -92,7 +74,7 @@ CreateThread(function()
                 local spawnedPed2 = NearPed2(v2.npcpetmodel, v2.npcpetcoords)
                 spawnedPetPeds[k2] = { spawnedPed2 = spawnedPed2 }
             end
-            
+
             if distance >= Config.DistanceSpawn and spawnedPetPeds[k2] then
                 if Config.FadeIn then
                     for i2 = 255, 0, -51 do
