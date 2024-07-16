@@ -254,35 +254,35 @@ Config.PetBuySpawn = {
         petmodel = 'A_C_DogHusky_01',
         petprice = 200,
         petname = 'Husky',
-        stablepetid = 'valentine-petshop',
+        stablepetid = 'valentine',
     },
     {
         petcoords = vector4(-289.32, 653.85, 113.44, 297.49),
         petmodel = 'A_C_DogCatahoulaCur_01',
         petprice = 50,
         petname = 'Mutt',
-        stablepetid = 'valentine-petshop'
+        stablepetid = 'valentine'
     },
     {
         petcoords = vector4(-283.77, 653.09, 113.22, 124.67),
         petmodel = 'A_C_DogLab_01',
         petprice = 100,
         petname = 'Labrador Retriever',
-        stablepetid = 'valentine-petshop'
+        stablepetid = 'valentine'
     },
     {
         petcoords = vector4(-286.63, 649.03, 113.24, 295.18),
         petmodel = 'A_C_DogRufus_01',
         petprice = 100,
         petname = 'Rufus',
-        stablepetid = 'valentine-petshop'
+        stablepetid = 'valentine'
     },
     {
         petcoords = vector4(-285.48, 654.38, 113.10, 120.20),
         petmodel = 'A_C_DogBluetickCoonhound_01',
         petprice = 150,
         petname = 'Coon Hound',
-        stablepetid = 'valentine-petshop'
+        stablepetid = 'valentine'
     },
     -- blackwater
     {
@@ -290,34 +290,34 @@ Config.PetBuySpawn = {
         petmodel = 'A_C_DogHound_01',
         petprice = 200,
         petname = 'Hound',
-        stablepetid = 'blackwater-petshop'
+        stablepetid = 'blackwater'
     },
     {
         petcoords = vector4(-933.99, -1240.08, 51.49, 48.18),
         petmodel = 'A_C_DogCollie_01',
         petprice = 500,
         petname = 'Collie',
-        stablepetid = 'blackwater-petshop'
+        stablepetid = 'blackwater'
     },
     {
         petcoords = vector4(-936.63, -1242.85, 51.62, 15.40),
         petmodel = 'A_C_DogPoodle_01',
         petprice = 120,
         petname = 'Poodle',
-        stablepetid = 'blackwater-petshop'
+        stablepetid = 'blackwater'
     },
     {
         petcoords = vector4(-932.13, -1237.06, 51.33, 53.85),
         petmodel = 'A_C_DogAmericanFoxhound_01',
         petprice = 225,
         petname = 'Fox hound',
-        stablepetid = 'blackwater-petshop'
+        stablepetid = 'blackwater'
     },
     {
         petcoords = vector4(-933.00, -1238.60, 51.41, 59.48),
         petmodel = 'A_C_DogAustralianSheperd_01',
         petprice = 350,
         petname = 'Australian Sheperd',
-        stablepetid = 'blackwater-petshop'
+        stablepetid = 'blackwater'
     }
 }
