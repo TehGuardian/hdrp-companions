@@ -21,13 +21,14 @@ local SpawnedPetshopBilps ={}
 --------------------------------------
 -- PROMPTS E 'Feed' / 'Pet Attack' / C 'Pet Track' / 'Follow' / C 'Stay' / F 'Hunt Mode' / 
 --------------------------------------
-local FeedPrompt = {}
+local MenuPrompt = {}
+local ActionsPrompt = {}
+
 local AttackPrompt = {}
 local TrackPrompt = {}
-local FollowPrompt = {}
-local StayPrompt = {}
-local HuntModePrompt = {}
-local BrushPrompt = {}
+-- local FleePrompt = {}
+-- local StayPrompt = {}
+-- local HuntModePrompt = {}
 
 local AddedAttackPrompt = {} -- Add the entities you've already targeted so it doesn't try adding the prompt over and over again. 
 local AddedTrackPrompt = {} -- Add the entities you've already targeted so it doesn't try adding the prompt over and over again. 
@@ -54,20 +55,6 @@ local function SetPetAttributes(entity)
     Citizen.InvokeNative( 0xF6A7C08DF2E28B28, entity, 0, 5000.0, false )
     Citizen.InvokeNative( 0xF6A7C08DF2E28B28, entity, 1, 5000.0, false )
     Citizen.InvokeNative( 0xF6A7C08DF2E28B28, entity, 2, 5000.0, false )
-end
-
-function AddFeedPrompts(entity)
-    local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
-    local str1 = 'Feed'
-    FeedPrompt[entity] = PromptRegisterBegin()
-    PromptSetControlAction(FeedPrompt[entity], Config.Prompt.FeedPet)
-    local str = CreateVarString(10, 'LITERAL_STRING', str1)
-    PromptSetText(FeedPrompt[entity], str)
-    PromptSetEnabled(FeedPrompt[entity], true)
-    PromptSetVisible(FeedPrompt[entity], true)
-    PromptSetStandardMode(FeedPrompt[entity], true)
-    PromptSetGroup(FeedPrompt[entity], group)
-    PromptRegisterEnd(FeedPrompt[entity])
 end
 
 function AddAttackPrompts(entity)
@@ -98,61 +85,75 @@ function AddTrackPrompts(entity)
     PromptRegisterEnd(TrackPrompt[entity])
 end
 
-function AddFollowPrompts(entity)
+-- function AddStayPrompts(entity)
+--     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
+--     local str5 = 'Stay'
+--     StayPrompt[entity] = PromptRegisterBegin()
+--     PromptSetControlAction(StayPrompt[entity], Config.Prompt.Stay)
+--     local str = CreateVarString(10, 'LITERAL_STRING', str5)
+--     PromptSetText(StayPrompt[entity], str)
+--     PromptSetEnabled(StayPrompt[entity], true)
+--     PromptSetVisible(StayPrompt[entity], true)
+--     PromptSetStandardMode(StayPrompt[entity], true)
+--     PromptSetGroup(StayPrompt[entity], group)
+--     PromptRegisterEnd(StayPrompt[entity])
+-- end
+
+-- function AddHuntModePrompts(entity)
+--     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
+--     local str6 = 'Hunt Mode'
+--     HuntModePrompt[entity] = PromptRegisterBegin()
+--     PromptSetControlAction(HuntModePrompt[entity], Config.Prompt.HuntMode)
+--     local str = CreateVarString(10, 'LITERAL_STRING', str6)
+--     PromptSetText(HuntModePrompt[entity], str)
+--     PromptSetEnabled(HuntModePrompt[entity], true)
+--     PromptSetVisible(HuntModePrompt[entity], true)
+--     PromptSetStandardMode(HuntModePrompt[entity], true)
+--     PromptSetGroup(HuntModePrompt[entity], group)
+--     PromptRegisterEnd(HuntModePrompt[entity])
+-- end
+
+-- function AddFleePrompts(entity)
+--     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
+--     local str1 = 'Flee'
+--     FleePrompt[entity] = PromptRegisterBegin()
+--     PromptSetControlAction(FleePrompt[entity], Config.Prompt.FleePet)
+--     local str = CreateVarString(10, 'LITERAL_STRING', str1)
+--     PromptSetText(FleePrompt[entity], str)
+--     PromptSetEnabled(FleePrompt[entity], true)
+--     PromptSetVisible(FleePrompt[entity], true)
+--     PromptSetStandardMode(FleePrompt[entity], true)
+--     PromptSetGroup(FleePrompt[entity], group)
+--     PromptRegisterEnd(FleePrompt[entity])
+-- end
+
+function AddActionsPrompts(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
-    local str4 = 'Follow'
-    FollowPrompt[entity] = PromptRegisterBegin()
-    PromptSetControlAction(FollowPrompt[entity], Config.Prompt.Follow)
+    local str4 = 'Actions'
+    ActionsPrompt[entity] = PromptRegisterBegin()
+    PromptSetControlAction(ActionsPrompt[entity], Config.Prompt.Follow)
     local str = CreateVarString(10, 'LITERAL_STRING', str4)
-    PromptSetText(FollowPrompt[entity], str)
-    PromptSetEnabled(FollowPrompt[entity], true)
-    PromptSetVisible(FollowPrompt[entity], true)
-    PromptSetStandardMode(FollowPrompt[entity], true)
-    PromptSetGroup(FollowPrompt[entity], group)
-    PromptRegisterEnd(FollowPrompt[entity])
+    PromptSetText(ActionsPrompt[entity], str)
+    PromptSetEnabled(ActionsPrompt[entity], true)
+    PromptSetVisible(ActionsPrompt[entity], true)
+    PromptSetStandardMode(ActionsPrompt[entity], true)
+    PromptSetGroup(ActionsPrompt[entity], group)
+    PromptRegisterEnd(ActionsPrompt[entity])
 end
 
-function AddStayPrompts(entity)
+function AddMenuPrompts(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
-    local str5 = 'Stay'
-    StayPrompt[entity] = PromptRegisterBegin()
-    PromptSetControlAction(StayPrompt[entity], Config.Prompt.Stay)
-    local str = CreateVarString(10, 'LITERAL_STRING', str5)
-    PromptSetText(StayPrompt[entity], str)
-    PromptSetEnabled(StayPrompt[entity], true)
-    PromptSetVisible(StayPrompt[entity], true)
-    PromptSetStandardMode(StayPrompt[entity], true)
-    PromptSetGroup(StayPrompt[entity], group)
-    PromptRegisterEnd(StayPrompt[entity])
-end
-
-function AddHuntModePrompts(entity)
-    local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
-    local str6 = 'Hunt Mode'
-    HuntModePrompt[entity] = PromptRegisterBegin()
-    PromptSetControlAction(HuntModePrompt[entity], Config.Prompt.HuntMode)
-    local str = CreateVarString(10, 'LITERAL_STRING', str6)
-    PromptSetText(HuntModePrompt[entity], str)
-    PromptSetEnabled(HuntModePrompt[entity], true)
-    PromptSetVisible(HuntModePrompt[entity], true)
-    PromptSetStandardMode(HuntModePrompt[entity], true)
-    PromptSetGroup(HuntModePrompt[entity], group)
-    PromptRegisterEnd(HuntModePrompt[entity])
-end
-
-function AddBrushPrompts(entity)
-    local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
-    local str7 = 'Brush'
-    BrushPrompt[entity] = PromptRegisterBegin()
-    PromptSetControlAction(BrushPrompt[entity], Config.Prompt.PetBrush)
+    local str7 = 'Menu'
+    MenuPrompt[entity] = PromptRegisterBegin()
+    PromptSetControlAction(MenuPrompt[entity], Config.Prompt.PetBrush)
     local str = CreateVarString(10, 'LITERAL_STRING', str7)
-    PromptSetText(BrushPrompt[entity], str)
-    PromptSetEnabled(BrushPrompt[entity], true)
-    PromptSetVisible(BrushPrompt[entity], true)
-    PromptSetStandardMode(BrushPrompt[entity], true)
-    PromptSetGroup(BrushPrompt[entity], group)
-    Citizen.InvokeNative(0xC5F428EE08FA7F2C, BrushPrompt, true)
-    PromptRegisterEnd(BrushPrompt[entity])
+    PromptSetText(MenuPrompt[entity], str)
+    PromptSetEnabled(MenuPrompt[entity], true)
+    PromptSetVisible(MenuPrompt[entity], true)
+    PromptSetStandardMode(MenuPrompt[entity], true)
+    PromptSetGroup(MenuPrompt[entity], group)
+    Citizen.InvokeNative(0xC5F428EE08FA7F2C, MenuPrompt, true)
+    PromptRegisterEnd(MenuPrompt[entity])
 end
 
 ------------------------------------
@@ -620,15 +621,14 @@ local function SpawnPet()
 					SetEntityInvincible(dogPed, true)
 				end
 
-                AddHuntModePrompts(dogPed)
+                -- AddHuntModePrompts(dogPed)
+                -- AddStayPrompts(dogPed)
+                -- AddAttackPrompts(dogPed)
+                -- AddTrackPrompts(dogPed)
+                -- AddFleePrompts(dogPed)
 
-                AddStayPrompts(dogPed)
-                AddAttackPrompts(dogPed)
-                AddTrackPrompts(dogPed)
-
-                AddFeedPrompts(dogPed)
-                AddBrushPrompts(dogPed)
-				AddFollowPrompts(dogPed)
+                AddMenuPrompts(dogPed)
+				AddActionsPrompts(dogPed)
 
 				if Config.NoFear then
 					Citizen.InvokeNative(0x013A7BA5015C1372, dogPed, true)
@@ -644,17 +644,17 @@ local function SpawnPet()
 					local halfGrowth = Config.FullGrownXp / 2
 					if dogXP >= Config.FullGrownXp then
 						SetPedScale(dogPed, 1.0) --Use this for the XP system with pets
-						AddStayPrompts(dogPed)
-						AddHuntModePrompts(dogPed)
+						-- AddStayPrompts(dogPed)
+						-- AddHuntModePrompts(dogPed)
 					elseif dogXP >= halfGrowth then
 						SetPedScale(dogPed, 0.8)
-						AddStayPrompts(dogPed)
+						-- AddStayPrompts(dogPed)
 					else
 						SetPedScale(dogPed, 0.6)
 					end
 				else
 					dogXP = Config.FullGrownXp
-					AddStayPrompts(dogPed)
+					-- AddStayPrompts(dogPed)
 				end
 
 				while (GetScriptTaskStatus(dogPed, 0x4924437d) ~= 8) do
@@ -678,21 +678,17 @@ local function SpawnPet()
                 if dogXP <= bond * 0.25 then -- level 1 (0 -> 1250)
                     dogBonding = 1
                 end
-
                 if dogXP > bond1 and dogXP <= bond2 then -- level 2 (1250 -> 2500)
                     dogBonding = 817
                 end
-
                 if dogXP > bond2 and dogXP <= bond3 then -- level 3 (2500 -> 3750)
                     dogBonding = 1634
                 end
-
                 if dogXP > bond3 then -- level 4 (3750 -> 5000)
                     dogBonding = 2450
                 end
 
                 Citizen.InvokeNative(0x09A59688C26D88DF, dogPed, 7, dogBonding)
-
                 BondingLevels()
                 -- pet bonding level: end
 
@@ -958,8 +954,7 @@ AddEventHandler('tbrp_companions:client:playerfeedpet', function(itemName)
                 Wait(5000)
 
                 local medicineHash = "consumable_pet_stimulant"
-                if Config.PetFeed[itemName]["medicineHash"] ~= nil then medicineHash = Config.PetFeed[itemName]
-                    ["medicineHash"] end
+                if Config.PetFeed[itemName]["medicineHash"] ~= nil then medicineHash = Config.PetFeed[itemName]["medicineHash"] end
                 -- TaskAnimalInteraction(PlayerPedId(), dogPed, -1355254781, GetHashKey(medicineHash), 0)
 
                 local valueHealth = Citizen.InvokeNative(0x36731AC041289BB1, dogPed, 0)
@@ -989,6 +984,7 @@ AddEventHandler('tbrp_companions:client:playerfeedpet', function(itemName)
                 Wait(4000)
                 ClearPedTasks(dogPed)
                 followOwner(dogPed, PlayerPedId(), false)
+                TriggerServerEvent('tbrp_companions:server:feedPet', dogXP)
 
                 local petHealth = Citizen.InvokeNative(0x36731AC041289BB1, dogPed, 0)  -- GetAttributeCoreValue (Health)
                 local newHealth = petHealth + Config.PetFeed[itemName]["health"]
@@ -1018,8 +1014,11 @@ AddEventHandler('tbrp_companions:client:playerbrushpet', function(itemName)
         RSGCore.Functions.Notify('need_to_be_closer', 'error')
         return
     end
+    local boneIndex = GetEntityBoneIndexByName(PlayerPedId(), "SKEL_R_Finger00")
+    local brushitem = CreateObject(`p_brushHorse02x`, pcoords.x, pcoords.y, pcoords.z, true, true, true)
+    AttachEntityToEntity(brushitem, PlayerPedId(), boneIndex, 0.06, -0.08, -0.03, -30.0, 0.0, 60.0, true, false, true, false, 0, true)
 
-    Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, `INTERACTION_BRUSH`, 0, 0)
+    Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, `INTERACTION_DOG_PATTING`, 0, 0)
 
     Wait(8000)
 
@@ -1028,10 +1027,10 @@ AddEventHandler('tbrp_companions:client:playerbrushpet', function(itemName)
     ClearPedDamageDecalByZone(dogPed, 10, "ALL")
     ClearPedBloodDamage(dogPed)
     Citizen.InvokeNative(0xD8544F6260F5F01E, dogPed, 10)
-
+    SetEntityAsNoLongerNeeded(brushitem)
+    DeleteEntity(brushitem)
     PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
 end)
-
 
 local RequestControl = function(entity)
     local type = GetEntityType(entity)
@@ -1132,8 +1131,7 @@ Citizen.CreateThread(function()
             if not Citizen.InvokeNative(0xAAB0FE202E9FC9F0, dogPed, -1) then -- IsMountSeatFree
                 return
             end
-            Citizen.InvokeNative(0x524B54361229154F, dogPed, joaat('WORLD_ANIMAL_HORSE_RESTING_DOMESTIC'), -1, true, 0,
-                GetEntityHeading(dogPed), false)                                                                                                           -- TaskStartScenarioInPlaceHash
+            Citizen.InvokeNative(0x524B54361229154F, dogPed, joaat('WORLD_ANIMAL_HORSE_RESTING_DOMESTIC'), -1, true, 0, GetEntityHeading(dogPed), false)                                                                                                           -- TaskStartScenarioInPlaceHash
             petbusy = true
         end
         Wait(sleep)
@@ -1192,9 +1190,165 @@ RegisterNetEvent('tbrp_companions:client:getpetlocation', function()
     end)
 end)
 
+--------------------------
+-- Mypets
+--------------------------
 
+RegisterNetEvent('tbrp_companions:client:mypets', function()
+    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetAllPets', function(results)
+        if results ~= nil then
+            local options = {}
+            for i = 1, #results do
+                -- local petdata = json.decode(result[1].properties)
+                local results = results[i]
+                local timeDifference = results.born
+                local daysPassed = math.floor(timeDifference / (24 * 60 * 60))
 
+                if results.active ~= 0 then
+                    options[#options + 1] = {
+                        title = 'Pet: '..results.name.. ' ID: '..results.dogid,
+                        description = 'is stabled in '..results.stablepet..' Owner: '..results.citizenid,
+                        icon = 'fa-solid fa-horse',
+                    }
+                    -- options[#options + 1] = {
+                    --     title = 'Acciones',
+                    --     icon = 'fa-solid fa-horse',
+                    --     menu = 'show_mypetactions_menu',
+                    --     arrow = true
+                    -- }
+                    options[#options + 1] = {
+                        title = 'Crecimiento: ',--..results.growth,
+                        description = 'time of life '..daysPassed,
+                        -- progress = results.growth,
+                        colorScheme = 'green',
+                        icon = 'fa-solid fa-horse',
+                    }
+                    options[#options + 1] = {
+                        title = 'XP: '..results.dogxp,
+                        progress = results.dogxp,
+                        colorScheme = 'green',
+                        icon = 'fa-solid fa-horse',
+                    }
+                    options[#options + 1] = {
+                        title = 'Hambre: ',--..results.hunger,
+                        -- progress = results.hunger,
+                        colorScheme = 'green',
+                        icon = 'fa-solid fa-horse',
+                        onSelect = function()
+                            TriggerServerEvent('tbrp_companions:server:eatpet', 'feed_dog')
+                        end,
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Sed: ',--..results.thirst,
+                        -- progress = results.thirst,
+                        colorScheme = 'green',
+                        icon = 'fa-solid fa-horse',
+                        onSelect = function()
+                            TriggerServerEvent('tbrp_companions:server:eatpet', 'drink_dog')
+                        end,
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Suciedad: '..results.dirt,
+                        progress = results.dirt,
+                        colorScheme = 'green',
+                        icon = 'fa-solid fa-horse',
+                        onSelect = function()
+                            TriggerServerEvent('tbrp_companions:server:brushpet', 'horsebrush')
+                        end,
+                        arrow = true
+                    }
+                end
+            end
+            lib.registerContext({
+                id = 'show_mypet_menu',
+                title = 'Pet info',
+                position = 'top-right',
+                options = options
+            })
+            lib.showContext('show_mypet_menu')
+        else
+            RSGCore.Functions.Notify('no pets', 'error')
+        end
+    end)
+end)
 
+RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
+    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetAllPets', function(results)
+        if results ~= nil then
+            local options = {}
+            for i = 1, #results do
+                -- local petdata = json.decode(result[1].properties)
+                local results = results[i]
+
+                if results.active ~= 0 then
+                    options[#options + 1] = {
+                        title = 'Pet: '..results.name.. ' ID: '..results.dogid,
+                        description = 'is stabled in '..results.stablepet..' Owner: '..results.citizenid,
+                        icon = 'fa-solid fa-horse',
+                    }
+                    options[#options + 1] = {
+                        title = 'Follow',
+                        icon = 'fa-solid fa-horse',
+                        onSelect = function()
+                            followOwner(dogPed, PlayerPedId())
+                        end,
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Acariciar',
+                        icon = 'fa-solid fa-horse',
+                        onSelect = function()
+                        end,
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Stay',
+                        icon = 'fa-solid fa-horse',
+                        onSelect = function()
+                            petStay(dogPed)
+                        end,
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Hunt Mode ON/OFF',
+                        icon = 'fa-solid fa-horse',
+                        onSelect = function()
+                            if not HuntMode then
+                                RSGCore.Functions.Notify(Lang:t('info.retrieve'), 'info', 3000)
+                                HuntMode = true
+                            else
+                                HuntMode = false
+                                RSGCore.Functions.Notify(Lang:t('error.notretrieve'), 'error', 3000)
+                            end
+                        end,
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Flee',
+                        icon = 'fa-solid fa-horse',
+                        onSelect = function()
+                            FleePet()
+                        end,
+                        arrow = true
+                    }
+                end
+            end
+            lib.registerContext({
+                id = 'show_mypetactions_menu',
+                title = 'Pet info actions',
+                menu = 'show_mypet_menu',
+                -- onBack = function() end,
+                position = 'top-right',
+                options = options
+            })
+            lib.showContext('show_mypetactions_menu')
+        else
+            RSGCore.Functions.Notify('no pets', 'error')
+        end
+    end)
+end)
 
 
 
@@ -1239,158 +1393,123 @@ end)
 --------------------------------------
 -- Main Thread - Checks if animal can hunt or is hungry, checks timers, etc.
 --------------------------------------
+-- Citizen.CreateThread(function()
+-- 	while true do
+-- 		Citizen.Wait(1000)
+-- 		if not Config.RaiseAnimal then
+-- 			if dogPed and not Retrieving and not isPetHungry and HuntMode then --Checking to see if your pet is active, not retriving and not hungry
+-- 				local ped = PlayerPedId()
+-- 				local ClosestPed = GetClosestAnimalPed(ped,Config.SearchRadius)
+-- 				local pedType = GetPedType(ClosestPed)		  			
+-- 				if pedType == 28 and IsEntityDead(ClosestPed) and not RetrievedEntities[ClosestPed] then
+-- 				   local whoKilledPed = GetPedSourceOfDeath(ClosestPed)
+-- 					if ped == whoKilledPed then -- Make sure the dead animal was killed by player or else it will try to steal other players hunts
+-- 					local model = GetEntityModel(ClosestPed)
+-- 					  for k,v in pairs(Config.Animals) do
+-- 						  if model == k then
+-- 						  RetrieveKill(ClosestPed)
+-- 						  end
+-- 					  end
+-- 					else
+-- 						RetrievedEntities[ClosestPed] = true --Even though it wasn't retrieved, I do this so it stops trying to check if it should retrieve this ped
+-- 					end
+-- 				 end
+-- 			end
+-- 		else
+-- 			if dogPed and not Retrieving and dogXP >= Config.FullGrownXp and not isPetHungry and HuntMode then --Checking to see if your pet is active, not retriving and not hungry
+-- 				local ped = PlayerPedId()
+-- 				local ClosestPed = GetClosestAnimalPed(ped,Config.SearchRadius)
+-- 				local pedType = GetPedType(ClosestPed)		  			
+-- 				if pedType == 28 and IsEntityDead(ClosestPed) and not RetrievedEntities[ClosestPed] then
+-- 				   local whoKilledPed = GetPedSourceOfDeath(ClosestPed)
+-- 					if ped == whoKilledPed then -- Make sure the dead animal was killed by player or else it will try to steal other players hunts
+-- 					local model = GetEntityModel(ClosestPed)
+-- 					  for k,v in pairs(Config.Animals) do
+-- 						  if model == k then
+-- 						  RetrieveKill(ClosestPed)
+-- 						  end
+-- 					  end
+-- 					else
+-- 						RetrievedEntities[ClosestPed] = true --Even though it wasn't retrieved, I do this so it stops trying to check if it should retrieve this ped
+-- 					end
+-- 				 end
+-- 			end
+-- 		end
+-- 		if dogPed then
+-- 			if Config.DefensiveMode and recentlyCombat <= 0 then
+-- 				local ped = PlayerPedId()
+-- 				local enemyPed = GetClosestFightingPed(ped, 50.0)
+-- 				if enemyPed then
+-- 					ClearPedTasks(dogPed)
+-- 					TaskCombatPed(dogPed,enemyPed,0,16)
+-- 					recentlyCombat = 15
+-- 				end
+-- 			end
+-- 			FeedTimer = FeedTimer + 1
+-- 			if Config.FeedInterval <= FeedTimer then
+-- 			 isPetHungry = true
+-- 				if not AddedFeedPrompts then --Constantly re-adding the prompts breaks them, so I added this to only do it once. not AddedFeedPrompts
+-- 					local itemSet = CreateItemset(true)
+-- 					local size = Citizen.InvokeNative(0x59B57C4B06531E1E, GetEntityCoords(PlayerPedId()), 3.0, itemSet, 1, Citizen.ResultAsInteger())
+-- 					if size > 0 then
+-- 						for index = 0, size - 1 do
+-- 							local entity = GetIndexedItemInItemset(index, itemSet)
+-- 								if entity == dogPed then -- If pet is your pet
+-- 									AddFeedPrompts(entity)
+-- 									AddedFeedPrompts = true
+-- 								end
+-- 						end
+-- 					end			
+-- 					if IsItemsetValid(itemSet) then
+-- 					   DestroyItemset(itemSet)
+-- 					end
+-- 				end
+-- 				if not notifyHungry and Config.NotifyWhenHungry then
+-- 					RSGCore.Functions.Notify(Lang:t('info.hungry'), 'info', 3000)
+-- 					notifyHungry = true
+-- 				end
+-- 			end
 
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(1000)
-		if not Config.RaiseAnimal then
-			if dogPed and not Retrieving and not isPetHungry and HuntMode then --Checking to see if your pet is active, not retriving and not hungry
-				local ped = PlayerPedId()
-				local ClosestPed = GetClosestAnimalPed(ped,Config.SearchRadius)
-				local pedType = GetPedType(ClosestPed)		  			
-				if pedType == 28 and IsEntityDead(ClosestPed) and not RetrievedEntities[ClosestPed] then
-				   local whoKilledPed = GetPedSourceOfDeath(ClosestPed)
-					if ped == whoKilledPed then -- Make sure the dead animal was killed by player or else it will try to steal other players hunts
-					local model = GetEntityModel(ClosestPed)
-					  for k,v in pairs(Config.Animals) do
-						  if model == k then
-						  RetrieveKill(ClosestPed)
-						  end
-					  end
-					else
-						RetrievedEntities[ClosestPed] = true --Even though it wasn't retrieved, I do this so it stops trying to check if it should retrieve this ped
-					end
-				 end
-			end
-		else
-			if dogPed and not Retrieving and dogXP >= Config.FullGrownXp and not isPetHungry and HuntMode then --Checking to see if your pet is active, not retriving and not hungry
-				local ped = PlayerPedId()
-				local ClosestPed = GetClosestAnimalPed(ped,Config.SearchRadius)
-				local pedType = GetPedType(ClosestPed)		  			
-				if pedType == 28 and IsEntityDead(ClosestPed) and not RetrievedEntities[ClosestPed] then
-				   local whoKilledPed = GetPedSourceOfDeath(ClosestPed)
-					if ped == whoKilledPed then -- Make sure the dead animal was killed by player or else it will try to steal other players hunts
-					local model = GetEntityModel(ClosestPed)
-					  for k,v in pairs(Config.Animals) do
-						  if model == k then
-						  RetrieveKill(ClosestPed)
-						  end
-					  end
-					else
-						RetrievedEntities[ClosestPed] = true --Even though it wasn't retrieved, I do this so it stops trying to check if it should retrieve this ped
-					end
-				 end
-			end
-		end
-		if dogPed then
-			if Config.DefensiveMode and recentlyCombat <= 0 then
-				local ped = PlayerPedId()
-				local enemyPed = GetClosestFightingPed(ped, 50.0)
-				if enemyPed then
-					ClearPedTasks(dogPed)
-					TaskCombatPed(dogPed,enemyPed,0,16)
-					recentlyCombat = 15
-				end
-			end
-			FeedTimer = FeedTimer + 1
-			if Config.FeedInterval <= FeedTimer then
-			 isPetHungry = true
-				 if not AddedFeedPrompts then --Constantly re-adding the prompts breaks them, so I added this to only do it once. not AddedFeedPrompts
-					local itemSet = CreateItemset(true)
-					local size = Citizen.InvokeNative(0x59B57C4B06531E1E, GetEntityCoords(PlayerPedId()), 3.0, itemSet, 1, Citizen.ResultAsInteger())
-					if size > 0 then
-						for index = 0, size - 1 do
-							local entity = GetIndexedItemInItemset(index, itemSet)  
-								if entity == dogPed then -- If pet is your pet
-									AddFeedPrompts(entity)
-									AddedFeedPrompts = true
-								end
-						end
-					end			
-					if IsItemsetValid(itemSet) then
-					   DestroyItemset(itemSet)
-					end
-				end
-				if not notifyHungry and Config.NotifyWhenHungry then
-					RSGCore.Functions.Notify(Lang:t('info.hungry'), 'info', 3000)	
-					notifyHungry = true
-				end
-			end
+-- 			if dogPed and IsEntityDead(dogPed) then
+-- 				recentlySpawned = Config.PetAttributes.DeathCooldown
+-- 				RSGCore.Functions.Notify(Lang:t('error.petdead'), 'error', 3000)
+-- 				Wait(3000)
+-- 				DeleteEntity(dogPed)
+-- 				dogPed = nil
+-- 			end
+-- 		end
+-- 		if recentlySpawned > 0 then
+-- 			recentlySpawned = recentlySpawned - 1
+-- 		end
+-- 		if recentlyCombat > 0 then
+-- 			recentlyCombat = recentlyCombat - 1
+-- 		end
+-- 	end
+-- end)
 
-			if dogPed and IsEntityDead(dogPed) then
-				recentlySpawned = Config.PetAttributes.DeathCooldown
-				RSGCore.Functions.Notify(Lang:t('error.petdead'), 'error', 3000)
-				Wait(3000)
-				DeleteEntity(dogPed)
-				dogPed = nil
-			end
-		end
-		if recentlySpawned > 0 then
-			recentlySpawned = recentlySpawned - 1
-		end
-		if recentlyCombat > 0 then
-			recentlyCombat = recentlyCombat - 1
-		end
-	end
-end)
-
+--------------------
+-- INTERACTIONS ANIMAL 
+--------------------
 Citizen.CreateThread(function()
     while true do
         Wait(0)
         local id = PlayerId()
         if IsPlayerTargettingAnything(id) then
             local result, entity = GetPlayerTargetEntity(id)
-            if PromptHasStandardModeCompleted(FeedPrompt[entity]) then
-				local ped = PlayerPedId()
-                local coords = GetEntityCoords(ped)
-                local coordspet = GetEntityCoords(entity)
-                local distance = #(coords - coordspet)
-                if distance <= 3.75 then	
-					if Config.FeedInterval <= FeedTimer then
-						TaskTurnPedToFaceEntity(ped, dogPed, 5000)
-						TaskTurnPedToFaceEntity(dogPed, ped, 5000)
-						TaskStartScenarioInPlace(ped, GetHashKey('WORLD_HUMAN_CROUCH_INSPECT'), 60000, true, false, false, false)
-						Wait(2000)
-						DogEatAnimation()
-						Wait(4000)
-						ClearPedTasks(ped)
-						Wait(4000)
-						ClearPedTasks(dogPed)
-						followOwner(dogPed, ped)
-						TriggerServerEvent('tbrp_companions:server:feedPet', dogXP)
-					else
-						local timeLeft = SecondsToClock(Config.FeedInterval - FeedTimer)
-						RSGCore.Functions.Notify(Lang:t('info.petfeed', {timeLeft = timeLeft}), 'info', 3000)
-					end
-				   Wait(2000)
-                end
-			end
-            if PromptHasStandardModeCompleted(BrushPrompt[entity]) then
-			    TriggerServerEvent("tbrp_companions:server:brushpet", "horsebrush")
+            if PromptHasStandardModeCompleted(MenuPrompt[entity]) then
+			    TriggerEvent("tbrp_companions:client:mypets")
 				Wait(2000)
             end
-            if PromptHasStandardModeCompleted(FollowPrompt[entity]) then
-			    followOwner(dogPed, ped)
+            if PromptHasStandardModeCompleted(ActionsPrompt[entity]) then
+			    TriggerEvent("tbrp_companions:client:mypetsactions", dogPed)
 				Wait(2000)
             end
-            if PromptHasStandardModeCompleted(StayPrompt[entity]) then
-			    petStay(dogPed)
-				Wait(2000)
-            end
+
 			if PromptHasStandardModeCompleted(AttackPrompt[entity]) then
 				AttackTarget(entity)
 			end
 			if PromptHasStandardModeCompleted(TrackPrompt[entity]) then
-					TrackTarget(entity)
-			end
-			if PromptHasStandardModeCompleted(HuntModePrompt[entity]) then
-                if not HuntMode then
-                    RSGCore.Functions.Notify(Lang:t('info.retrieve'), 'info', 3000)
-                    HuntMode = true
-                else
-                    HuntMode = false
-                    RSGCore.Functions.Notify(Lang:t('error.notretrieve'), 'error', 3000)
-                end
+				TrackTarget(entity)
 			end
 			if Config.AttackCommand and dogPed then
 				if not AddedAttackPrompt[entity] and entity ~= dogPed then
@@ -1675,12 +1794,12 @@ AddEventHandler('tbrp_companions:client:UpdateDogFed', function (newXP, growAnim
 				local halfGrowth = Config.FullGrownXp / 2
 				if dogXP >= Config.FullGrownXp then
 					SetPedScale(dogPed, 1.0)
-					AddStayPrompts(dogPed)
-					AddHuntModePrompts(dogPed)
+					-- AddStayPrompts(dogPed)
+					-- AddHuntModePrompts(dogPed)
 					--Use this for the XP system with pets
 				elseif dogXP >= halfGrowth then
 					SetPedScale(dogPed, 0.8)
-					AddStayPrompts(dogPed)
+					-- AddStayPrompts(dogPed)
 				else
 					SetPedScale(dogPed, 0.6)
 				end

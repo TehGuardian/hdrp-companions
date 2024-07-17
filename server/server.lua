@@ -33,6 +33,13 @@ RSGCore.Functions.CreateUseableItem('feed_dog', function(source, item)
     end
 end)
 
+RSGCore.Functions.CreateUseableItem('drink_dog', function(source, item)
+    local Player = RSGCore.Functions.GetPlayer(source)
+    if Player.Functions.RemoveItem(item.name, 1, item.slot) then
+        TriggerClientEvent("tbrp_companions:client:playerfeedpet", source, item.name)
+    end
+end)
+
  -- feed Stimulant dog 
 RSGCore.Functions.CreateUseableItem("stimulant_dog", function(source, item)
     local Player = RSGCore.Functions.GetPlayer(source)
@@ -67,9 +74,15 @@ end)
 ----------------
 -- find pet command
 ----------------
+
 RSGCore.Commands.Add("findpet", "find where your pets are stored", {}, false, function(source)
     local src = source
     TriggerClientEvent('tbrp_companions:client:getpetlocation', src)
+end)
+
+RSGCore.Commands.Add("mypets", "Your pets are stored", {}, false, function(source)
+    local src = source
+    TriggerClientEvent('tbrp_companions:client:mypets', src)
 end)
 
 RSGCore.Functions.CreateCallback('tbrp_companions:server:GetAllPets', function(source, cb)
@@ -244,6 +257,17 @@ RegisterServerEvent('tbrp_companions:server:brushpet', function(item)
     local Player = RSGCore.Functions.GetPlayer(source)
     if Player.Functions.GetItemByName(item) then
         TriggerClientEvent("tbrp_companions:client:playerbrushpet", source, item)
+    else
+        TriggerClientEvent('RSGCore:Notify', src, "You don't have "..item, 'error')
+    end
+end)
+
+RegisterServerEvent('tbrp_companions:server:eatpet', function(item)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(source)
+    if Player.Functions.GetItemByName(item) then
+        Player.Functions.RemoveItem(item, 1, item.slot)
+        TriggerClientEvent("tbrp_companions:client:playerfeedpet", source, item)
     else
         TriggerClientEvent('RSGCore:Notify', src, "You don't have "..item, 'error')
     end

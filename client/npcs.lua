@@ -57,6 +57,7 @@ function NearPed(npcmodel, npccoords)
             SetEntityAlpha(spawnedPed, i, false)
         end
     end
+    return spawnedPed
 end
 
 --------------------------------------
