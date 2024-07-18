@@ -1,7 +1,7 @@
 -- Based on Malik's and Blue's animal shelters and vorp animal shelter, hunting/raising/tracking system added by HAL
 local RSGCore = exports['rsg-core']:GetCoreObject()
 
----- horses
+---- pets
 local entities = {}
 local timeout = false
 local timeoutTimer = 30
@@ -26,9 +26,6 @@ local ActionsPrompt = {}
 
 local AttackPrompt = {}
 local TrackPrompt = {}
--- local FleePrompt = {}
--- local StayPrompt = {}
--- local HuntModePrompt = {}
 
 local AddedAttackPrompt = {} -- Add the entities you've already targeted so it doesn't try adding the prompt over and over again. 
 local AddedTrackPrompt = {} -- Add the entities you've already targeted so it doesn't try adding the prompt over and over again. 
@@ -85,53 +82,11 @@ function AddTrackPrompts(entity)
     PromptRegisterEnd(TrackPrompt[entity])
 end
 
--- function AddStayPrompts(entity)
---     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
---     local str5 = 'Stay'
---     StayPrompt[entity] = PromptRegisterBegin()
---     PromptSetControlAction(StayPrompt[entity], Config.Prompt.Stay)
---     local str = CreateVarString(10, 'LITERAL_STRING', str5)
---     PromptSetText(StayPrompt[entity], str)
---     PromptSetEnabled(StayPrompt[entity], true)
---     PromptSetVisible(StayPrompt[entity], true)
---     PromptSetStandardMode(StayPrompt[entity], true)
---     PromptSetGroup(StayPrompt[entity], group)
---     PromptRegisterEnd(StayPrompt[entity])
--- end
-
--- function AddHuntModePrompts(entity)
---     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
---     local str6 = 'Hunt Mode'
---     HuntModePrompt[entity] = PromptRegisterBegin()
---     PromptSetControlAction(HuntModePrompt[entity], Config.Prompt.HuntMode)
---     local str = CreateVarString(10, 'LITERAL_STRING', str6)
---     PromptSetText(HuntModePrompt[entity], str)
---     PromptSetEnabled(HuntModePrompt[entity], true)
---     PromptSetVisible(HuntModePrompt[entity], true)
---     PromptSetStandardMode(HuntModePrompt[entity], true)
---     PromptSetGroup(HuntModePrompt[entity], group)
---     PromptRegisterEnd(HuntModePrompt[entity])
--- end
-
--- function AddFleePrompts(entity)
---     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
---     local str1 = 'Flee'
---     FleePrompt[entity] = PromptRegisterBegin()
---     PromptSetControlAction(FleePrompt[entity], Config.Prompt.FleePet)
---     local str = CreateVarString(10, 'LITERAL_STRING', str1)
---     PromptSetText(FleePrompt[entity], str)
---     PromptSetEnabled(FleePrompt[entity], true)
---     PromptSetVisible(FleePrompt[entity], true)
---     PromptSetStandardMode(FleePrompt[entity], true)
---     PromptSetGroup(FleePrompt[entity], group)
---     PromptRegisterEnd(FleePrompt[entity])
--- end
-
 function AddActionsPrompts(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
     local str4 = 'Actions'
     ActionsPrompt[entity] = PromptRegisterBegin()
-    PromptSetControlAction(ActionsPrompt[entity], Config.Prompt.Follow)
+    PromptSetControlAction(ActionsPrompt[entity], Config.Prompt.Actions)
     local str = CreateVarString(10, 'LITERAL_STRING', str4)
     PromptSetText(ActionsPrompt[entity], str)
     PromptSetEnabled(ActionsPrompt[entity], true)
@@ -145,7 +100,7 @@ function AddMenuPrompts(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
     local str7 = 'Menu'
     MenuPrompt[entity] = PromptRegisterBegin()
-    PromptSetControlAction(MenuPrompt[entity], Config.Prompt.PetBrush)
+    PromptSetControlAction(MenuPrompt[entity], Config.Prompt.PetMenu)
     local str = CreateVarString(10, 'LITERAL_STRING', str7)
     PromptSetText(MenuPrompt[entity], str)
     PromptSetEnabled(MenuPrompt[entity], true)
@@ -220,7 +175,6 @@ end)
 ------------
 -- commands
 ------------
-
 RegisterCommand("fleepet", function() --  COMMAND
 	FleePet()
 	Wait(3000) -- Spam protect
@@ -232,7 +186,7 @@ RegisterCommand('setpetname', function() -- rename pet name command
             type = 'input',
             isRequired = true,
             label = 'pet_setname',
-            icon = 'fas fa-horse-head'
+            icon = 'fas fa-paw'
         },
     })
 
@@ -341,9 +295,9 @@ RegisterNetEvent('tbrp_companions:client:openpetshop', function(stablepetid)
                 event = 'tbrp_companions:client:MenuDel',
                 arrow = true
             },
-            {   title = 'trade',
+            {   title = 'Trade',
                 description = 'pet trade',
-                icon = 'fa-solid fa-handshake',
+                icon = 'fa-solid fa-people-arrows',
                 event = 'tbrp_companions:client:tradepet',
                 arrow = true
             },
@@ -373,7 +327,6 @@ end)
 -------------------------
 -- OPTIONS PETS STABLE MENUS
 -------------------------
-
 local function TradePet()
     RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data, newnames)
         if dogPed ~= 0 then
@@ -785,7 +738,6 @@ end)
 -------------------------
 -- SpawnPet
 -------------------------
-
 local PetId = nil
 
 RegisterNetEvent('tbrp_companions:client:SpawnPet', function(data)
@@ -875,32 +827,32 @@ end)
 
 -- pet menu sell
 RegisterNetEvent('tbrp_companions:client:MenuDel', function()
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetPet', function(pets)
-        if pets ~= nil then
-            local options = {}
-            for i = 1, #pets do
-                local pets = pets[i]
-                options[#options + 1] = {
-                    title = pets.name,
-                    description = 'sell_your_pet',
-                    icon = 'fa-solid fa-horse',
-					serverEvent = 'tbrp_companions:server:deletepet',
-                    args = { petid = pets.id },
-                    arrow = true
-                }
-            end
-            lib.registerContext({
-                id = 'sellpet_menu', -- Corrected the context ID here
-                title = 'sell_pet_menu',
-                position = 'top-right',
-                menu = 'petshop_menu',
-                onBack = function() end,
-                options = options
-            })
-            lib.showContext('sellpet_menu') -- Use the correct context ID here
-        else
-            RSGCore.Functions.Notify(Lang:t('error.nopet'), 'error')
+    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetPetB', function(pets)
+        if pets == nil then
+            RSGCore.Functions.Notify('error.no_pets', 'error')
+            return
         end
+        local options = {}
+        for i = 1, #pets do
+            local pets = pets[i]
+            options[#options + 1] = {
+                title = pets.name,
+                description = 'Gender:' ..pets.gender ..' Xp: ' .. pets.dogxp .. ' Active: ' .. pets.active,
+                icon = 'fa-solid fa-paw',
+                serverEvent = 'tbrp_companions:server:deletepet',
+                args = { petid = pets.id },
+                arrow = true
+            }
+        end
+        lib.registerContext({
+            id = 'sellpet_menu', -- Corrected the context ID here
+            title = 'sell_pet_menu',
+            position = 'top-right',
+            menu = 'petshop_menu',
+            onBack = function() end,
+            options = options
+        })
+        lib.showContext('sellpet_menu') -- Use the correct context ID here
     end)
 end)
 
@@ -917,8 +869,8 @@ Citizen.CreateThread(function() -- call
 						local coords = GetEntityCoords(PlayerPedId())
 						local petCoords = GetEntityCoords(dogPed)
 						local distance = #(coords - petCoords)
-
-                        PlaySoundFrontend("Whistle", "Flex_Fight_Sounds", true, 0)
+                        
+                        TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'CALLING_WHISTLE_01', 1)
 
 						if not DogCalled and (distance > 100.0) then
 							SpawnPet()
@@ -930,6 +882,29 @@ Citizen.CreateThread(function() -- call
 				end)
 			end
 		end
+        local size = GetNumberOfEvents(0)
+        if size > 0 then
+            for i = 0, size - 1 do
+                local eventAtIndex = GetEventAtIndex(0, i)
+                if eventAtIndex == `EVENT_PLAYER_PROMPT_TRIGGERED` then
+                    local eventDataSize = 10
+                    local eventDataStruct = DataView.ArrayBuffer(8*eventDataSize) -- buffer must be 8*eventDataSize or bigger
+                    for a = 0, eventDataSize -1 do
+                      eventDataStruct:SetInt32(8*a ,0)
+                    end
+                    local is_data_exists = Citizen.InvokeNative(0x57EC5FA4D4D6AFCA, 0, i, eventDataStruct:Buffer(), eventDataSize)
+
+                    if is_data_exists then
+
+                        if eventDataStruct:GetInt32(0) == 33 then
+                            if dogPed == eventDataStruct:GetInt32(16) then
+                                FleePet()
+                            end
+                        end
+                    end
+                end
+            end
+        end
 		Wait(1)
 	end
 end)
@@ -984,7 +959,6 @@ AddEventHandler('tbrp_companions:client:playerfeedpet', function(itemName)
                 Wait(4000)
                 ClearPedTasks(dogPed)
                 followOwner(dogPed, PlayerPedId(), false)
-                TriggerServerEvent('tbrp_companions:server:feedPet', dogXP)
 
                 local petHealth = Citizen.InvokeNative(0x36731AC041289BB1, dogPed, 0)  -- GetAttributeCoreValue (Health)
                 local newHealth = petHealth + Config.PetFeed[itemName]["health"]
@@ -1014,13 +988,14 @@ AddEventHandler('tbrp_companions:client:playerbrushpet', function(itemName)
         RSGCore.Functions.Notify('need_to_be_closer', 'error')
         return
     end
+
     local boneIndex = GetEntityBoneIndexByName(PlayerPedId(), "SKEL_R_Finger00")
     local brushitem = CreateObject(`p_brushHorse02x`, pcoords.x, pcoords.y, pcoords.z, true, true, true)
     AttachEntityToEntity(brushitem, PlayerPedId(), boneIndex, 0.06, -0.08, -0.03, -30.0, 0.0, 60.0, true, false, true, false, 0, true)
 
     Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, `INTERACTION_DOG_PATTING`, 0, 0)
 
-    Wait(8000)
+    Wait(6000)
 
     Citizen.InvokeNative(0xE3144B932DFDFF65, dogPed, 0.0, -1, 1, 1)
     ClearPedEnvDirt(dogPed)
@@ -1164,7 +1139,6 @@ end)
 -------------------------------------------------------------------------------
 -- Command findpet get pet location server/server.lua
 -------------------------------------------------------------------------------
-
 RegisterNetEvent('tbrp_companions:client:getpetlocation', function()
     RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetAllPets', function(results)
         if results ~= nil then
@@ -1174,7 +1148,7 @@ RegisterNetEvent('tbrp_companions:client:getpetlocation', function()
                 options[#options + 1] = {
                     title = 'Pet: '..results.name,
                     description = 'is stabled in '..results.stablepet..' active: '..results.active,
-                    icon = 'fa-solid fa-horse',
+                    icon = 'fa-solid fa-paw',
                 }
             end
             lib.registerContext({
@@ -1193,57 +1167,58 @@ end)
 --------------------------
 -- Mypets
 --------------------------
-
 RegisterNetEvent('tbrp_companions:client:mypets', function()
     RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetAllPets', function(results)
         if results ~= nil then
             local options = {}
             for i = 1, #results do
-                -- local petdata = json.decode(result[1].properties)
+
                 local results = results[i]
                 local timeDifference = results.born
                 local daysPassed = math.floor(timeDifference / (24 * 60 * 60))
 
                 if results.active ~= 0 then
                     options[#options + 1] = {
-                        title = 'Pet: '..results.name.. ' ID: '..results.dogid,
-                        description = 'is stabled in '..results.stablepet..' Owner: '..results.citizenid,
-                        icon = 'fa-solid fa-horse',
-                    }
-                    -- options[#options + 1] = {
-                    --     title = 'Acciones',
-                    --     icon = 'fa-solid fa-horse',
-                    --     menu = 'show_mypetactions_menu',
-                    --     arrow = true
-                    -- }
-                    options[#options + 1] = {
-                        title = 'Crecimiento: ',--..results.growth,
-                        description = 'time of life '..daysPassed,
-                        -- progress = results.growth,
-                        colorScheme = 'green',
-                        icon = 'fa-solid fa-horse',
+                        title = 'Pet: '..results.name,
+                        description = 'Stabled in '..results.stablepet..'\nOwner: '..results.citizenid.. '\n ID: '..results.dogid..'\ntime of life '..daysPassed,
+                        icon = 'fa-solid fa-circle-info',
                     }
                     options[#options + 1] = {
                         title = 'XP: '..results.dogxp,
                         progress = results.dogxp,
-                        colorScheme = 'green',
-                        icon = 'fa-solid fa-horse',
+                        icon = 'fa-solid fa-expand',
                     }
                     options[#options + 1] = {
-                        title = 'Hambre: ',--..results.hunger,
-                        -- progress = results.hunger,
+                        title = 'Vida: '..results.live,
+                        progress = results.live,
+                        colorScheme = liveColorScheme,
+                        icon = 'fa-solid fa-heart',
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Felicidad: '..results.happiness,
+                        progress = results.happiness,
+                        icon = 'fa-solid fa-face-grin-hearts',
+                    }
+                    options[#options + 1] = {
+                        title = 'Crecimiento: '..results.growth,
+                        progress = results.growth,
                         colorScheme = 'green',
-                        icon = 'fa-solid fa-horse',
+                        icon = 'fa-solid fa-arrow-up-right-dots',
+                    }
+                    options[#options + 1] = {
+                        title = 'Hambre: '..results.hunger,
+                        progress = results.hunger,
+                        icon = 'fa-solid fa-drumstick-bite',
                         onSelect = function()
                             TriggerServerEvent('tbrp_companions:server:eatpet', 'feed_dog')
                         end,
                         arrow = true
                     }
                     options[#options + 1] = {
-                        title = 'Sed: ',--..results.thirst,
-                        -- progress = results.thirst,
-                        colorScheme = 'green',
-                        icon = 'fa-solid fa-horse',
+                        title = 'Sed: '..results.thirst,
+                        progress = results.thirst,
+                        icon = 'fa-solid fa-droplet',
                         onSelect = function()
                             TriggerServerEvent('tbrp_companions:server:eatpet', 'drink_dog')
                         end,
@@ -1252,8 +1227,7 @@ RegisterNetEvent('tbrp_companions:client:mypets', function()
                     options[#options + 1] = {
                         title = 'Suciedad: '..results.dirt,
                         progress = results.dirt,
-                        colorScheme = 'green',
-                        icon = 'fa-solid fa-horse',
+                        icon = 'fa-solid fa-shower',
                         onSelect = function()
                             TriggerServerEvent('tbrp_companions:server:brushpet', 'horsebrush')
                         end,
@@ -1279,33 +1253,31 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
         if results ~= nil then
             local options = {}
             for i = 1, #results do
-                -- local petdata = json.decode(result[1].properties)
                 local results = results[i]
 
                 if results.active ~= 0 then
                     options[#options + 1] = {
-                        title = 'Pet: '..results.name.. ' ID: '..results.dogid,
-                        description = 'is stabled in '..results.stablepet..' Owner: '..results.citizenid,
-                        icon = 'fa-solid fa-horse',
+                        title = 'Pet: '..results.name,
+                        icon = 'fa-solid fa-circle-info',
                     }
                     options[#options + 1] = {
                         title = 'Follow',
-                        icon = 'fa-solid fa-horse',
+                        icon = 'fa-solid fa-share',
                         onSelect = function()
                             followOwner(dogPed, PlayerPedId())
                         end,
                         arrow = true
                     }
-                    options[#options + 1] = {
-                        title = 'Acariciar',
-                        icon = 'fa-solid fa-horse',
-                        onSelect = function()
-                        end,
-                        arrow = true
-                    }
+                    -- options[#options + 1] = {
+                    --     title = 'Acariciar',
+                    --     icon = 'fa-solid fa-horse',
+                    --     onSelect = function()
+                    --     end,
+                    --     arrow = true
+                    -- }
                     options[#options + 1] = {
                         title = 'Stay',
-                        icon = 'fa-solid fa-horse',
+                        icon = 'fa-solid fa-location-dot',
                         onSelect = function()
                             petStay(dogPed)
                         end,
@@ -1313,7 +1285,7 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
                     }
                     options[#options + 1] = {
                         title = 'Hunt Mode ON/OFF',
-                        icon = 'fa-solid fa-horse',
+                        icon = 'fa-solid fa-toggle-on',
                         onSelect = function()
                             if not HuntMode then
                                 RSGCore.Functions.Notify(Lang:t('info.retrieve'), 'info', 3000)
@@ -1327,7 +1299,7 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
                     }
                     options[#options + 1] = {
                         title = 'Flee',
-                        icon = 'fa-solid fa-horse',
+                        icon = 'fa-solid fa-warehouse',
                         onSelect = function()
                             FleePet()
                         end,
@@ -1338,7 +1310,7 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
             lib.registerContext({
                 id = 'show_mypetactions_menu',
                 title = 'Pet info actions',
-                menu = 'show_mypet_menu',
+                -- menu = 'show_mypet_menu',
                 -- onBack = function() end,
                 position = 'top-right',
                 options = options
@@ -1351,17 +1323,6 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
 end)
 
 
-
-
-
-
-
-
-
-
-
-
-
 ----------------------------
 ----------------------------
 ----------------------------
@@ -1372,23 +1333,6 @@ end)
 ----------------------------
 ----------------------------
 ----------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 --------------------------------------
 -- Main Thread - Checks if animal can hunt or is hungry, checks timers, etc.
@@ -1504,7 +1448,6 @@ Citizen.CreateThread(function()
 			    TriggerEvent("tbrp_companions:client:mypetsactions", dogPed)
 				Wait(2000)
             end
-
 			if PromptHasStandardModeCompleted(AttackPrompt[entity]) then
 				AttackTarget(entity)
 			end
@@ -1517,7 +1460,7 @@ Citizen.CreateThread(function()
 						 if Config.AttackOnly.Animals and GetPedType(entity) == 28 then
 							AddAttackPrompts(entity)
 							AddedAttackPrompt[entity] = true
-	
+
 						elseif Config.AttackOnly.NPC and not IsPedAPlayer(entity) then
 							AddAttackPrompts(entity)
 							AddedAttackPrompt[entity] = true
@@ -1525,11 +1468,11 @@ Citizen.CreateThread(function()
 						elseif Config.AttackOnly.Players and IsPedAPlayer(entity) then
 							AddAttackPrompts(entity)
 							AddedAttackPrompt[entity] = true
-	
+
 						elseif not Config.AttackOnly.Animals and not Config.AttackOnly.NPC and not Config.AttackOnly.Players then
 							AddAttackPrompts(entity)
 							AddedAttackPrompt[entity] = true
-					
+
 						end
 					end
 				end
@@ -1592,7 +1535,6 @@ function DogSitAnimation()
 	end
 	TaskPlayAnim(dogPed, dict, "base", 1.0, 8.0, -1, 1, 0, false, false, false)
 end
-
 
 --------
 -- target pet
@@ -1901,27 +1843,6 @@ end
 function SET_PED_OUTFIT_PRESET (dog, preset)
 	return Citizen.InvokeNative(0x77FF8D35EEC6BBC4, dog, preset, 0)
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ------------- tbrp
 local keys = Config.Keys

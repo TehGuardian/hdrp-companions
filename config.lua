@@ -28,6 +28,56 @@ Config.PetShop = {
     -- [2] = { name = 'stimulant_dog', price = 3, amount = 500, info = {}, type = 'item', slot = 2, },
 }
 
+-- sell animals trap
+local animaltrap = {
+    ['a_c_armadillo_01'] =  100,
+    ['a_c_badger_01']    =  100,
+    ['a_c_chipmunk_01']  =  100,
+    ['a_c_muskrat_01'] 	 =  100,
+    ['a_c_possum_01'] 	 =  100,
+    ['a_c_rabbit_01'] 	 =  100,
+    ['a_c_raccoon_01'] 	 =  100,
+    ['a_c_rat_01'] 	 =  100,
+    ['a_c_rat_01-3'] 	 =  100,
+    ['a_c_rat_01-4'] 	 =  100,
+    ['a_c_squirrel_01']  =  100,
+    ['a_c_squirrel_01-2'] =  100,
+    ['a_c_squirrel_01-3'] =  100,
+    ['a_c_skunk_01']      =  100,
+}
+
+local birdtrap = {
+    ['a_c_bluejay_01'] 	 =  100,
+    ['a_c_cardinal_01']  =  100,
+    ['a_c_robin_01'] 	    =  100,
+    ['a_c_cedarwaxwing_01'] =  100,
+    ['a_c_crow_01'] 		=  100,
+    ['a_c_oriole_01'] 		=  100,
+    ['a_c_oriole_01-1'] 	=  100,
+    ['a_c_pigeon'] 		=  100,
+    ['a_c_songbird_01']     =  100,
+    ['a_c_songbird_01-1'] 	=  100,
+    ['a_c_sparrow_01'] 		=  100,
+    ['a_c_sparrow_01-2'] 	=  100,
+    ['a_c_woodpecker_01'] 	=  100,
+    ['a_c_woodpecker_02'] 	=  100,
+    ['a_c_carolinaparakeet_01'] =  100,
+}
+
+local reptiltrap = {
+    ['a_c_snake_01']         =  100,
+    ['a_c_snakeredboa_01'] 	 =  100,
+    ['a_c_snakeredboa_01-1'] =  100,
+    ['a_c_snakeredboa_01-2'] = 100,    
+    ['a_c_snakeblacktailrattle_01'] = 100,
+    ['a_c_snakeferdelance_01'] 		= 100,
+}
+
+local fishtrap = {
+    ['a_c_snakewater_01']         =  100,
+    ['a_c_snakewater_01-2']         =  100,
+}
+
 ---------------------------------
 -- shop/sell/stablepets locations
 ---------------------------------
@@ -49,7 +99,8 @@ Config.PetsLocations = {
         showblip = true,
         blipsprite = 'blip_taxidermist',
         blipscale = 0.1,
-},
+
+        shopdata = { animaltrap, birdtrap, reptiltrap, fishtrap}},
     {
         stablepetid = 'blackwater',
 		name = Lang:t('label.petshop'),
@@ -67,9 +118,8 @@ Config.PetsLocations = {
         showblip = true,
         blipsprite = 'blip_taxidermist',
         blipscale = 0.1,
-},
+        shopdata = { animaltrap, birdtrap, reptiltrap, fishtrap}},
 }
-
 
 ---------------------------------
 -- general settings
@@ -87,22 +137,36 @@ Config.PetsLocations = {
 --------------------
 Config.SpawnOnRoadOnly    = false -- always spawn on road
 Config.CheckCycle         = 1 -- pet check system (mins)
-Config.PetDieAge          = 30 -- pet age in days till it dies (days)
 Config.StoreFleedPet      = true -- store pet if flee is used
 Config.EnableServerNotify = true
+
+Config.PetDieAge        = 30 -- pet age in days till it dies (days)
+Config.StartingHeart    = 100
+Config.StartingHunger   = 75.0
+Config.StartingThirst   = 75.0
+Config.StartingHappines = 75.0
+
+Config.HungerIncrease    = math.random(25, 50) -- amount increased when drink_dog
+Config.ThirstIncrease    = math.random(25, 50) -- amount increased when feed_dog
+Config.Degrade           = math.random(3, 5)
+Config.QualityDegrade    = math.random(8, 12)
+Config.GrowthIncrease    = math.random(10, 20)
+Config.GrowthTimer       = 60000 -- 60000 = every 1 min / testing 1000 = 1 seconds
+
+Config.XpPerFeed         = math.random(10, 20) -- The amount of XP every feed gives
+Config.XpPerClean        = math.random(1, 5) -- The amount of XP every feed gives
+Config.XpPerDrink        = math.random(5, 10) -- The amount of XP every feed gives
 
 Config.CallPetKey         = true --Set to true to use the CallPet hotkey below
 
 Config.Prompt = {
-    FleePet     = 0xE30CD707, -- R INPUT_ENTER
-    PetAttack   = 0xDB096B85, -- CTRL INPUT_INTERACT_HORSE_BRUSH
-    PetTrack    = 0x8FFC75D6, -- SHIFT INPUT_LOOK_BEHIND
-    Stay        = 0x760A9C6F, -- F
+    CallPet    = 0xD8F73058, -- U
 
-    Follow      = 0xCEFD9220, -- E INPUT_INTERACT_HORSE_BRUSH
-    HuntMode    = 0xC7B5340A, -- ENTER
-    PetBrush    = 0x63A38F2C, -- B
-    CallPet     = 0xD8F73058, -- U INPUT_AIM_IN_AIR
+    Actions    = 0xCEFD9220, -- E
+    PetMenu    = 0x63A38F2C, -- B
+
+    PetAttack  = 0xDB096B85, -- CTRL INPUT_INTERACT_HORSE_BRUSH
+    PetTrack   = 0x8FFC75D6, -- SHIFT INPUT_LOOK_BEHIND
 }
 
 Config.DefensiveMode    = true --If set to true, pets will become hostile to anything you are in combat with
@@ -111,12 +175,12 @@ Config.SearchRadius     = 50.0 -- How far the pet will search for a hunted anima
 Config.NoFear           = true --Set this to true if you are using Bears/Wolves as pets so that your horses won't be in constant fear and wont get stuck on the eating dead body animation.
 Config.RaiseAnimal      = true -- If this is enabled, you will have to feed your animal for it to gain XP and grow. Only full grown pets can use commands (halfway you get the Stay command)
 Config.FullGrownXp      = 1000 -- The amount of XP that it is fully grown. At the halfway point the pet will grow to 50% of max size.
-Config.XpPerFeed        = 20 -- The amount of XP every feed gives
+
 
 Config.NotifyWhenHungry = true -- Puts up a little notification letting you know your pet can be fed. 
 Config.FeedInterval     = 1800 -- 1800 = 30 min, How often in seconds the pet will want to be fed
 Config.AnimalFood       = 'feed_dog' -- The item required to feed and/or level up your pet
-
+Config.AnimalDrink      = 'drink_dog'
 --The attack command sets your animal to attack a target
 Config.AttackCommand     = true -- Set true to be able to send your pet to attack a target you are locked on (holding right-click on them)
 Config.AttackOnly = {-- <<Only have one of these 3 be true or all 3 false if you want the attack prompt on all targets -->>
@@ -134,12 +198,11 @@ Config.TrackOnly = {  -- <<Only have one of these 3 be true or all 3 false if yo
 }
 
 Config.PetAttributes = {
-    FollowDistance  = 5,
+    FollowDistance  = 3,
     Invincible      = false,
     SpawnLimiter    = 100, -- Set this to limit how often a pet can be spawned or 0 to disable it
     DeathCooldown   = 300, -- Time before a pet can be respawned after dying
 }
-
 ---------------------------------
 -- Pets carry animals
 --------------------
