@@ -136,7 +136,6 @@ Config.PetsLocations = {
 -- Pets Attributes
 --------------------
 Config.SpawnOnRoadOnly    = false -- always spawn on road
-Config.CheckCycle         = 1 -- pet check system (mins)
 Config.StoreFleedPet      = true -- store pet if flee is used
 Config.CycleNotify        = true
 Config.CronupkeepJob      = '*/1 * * * *'          -- cronjob time (every hour = 0 * * * *) / (every 30 mins = */30 * * * *)
@@ -149,10 +148,10 @@ Config.StartingHappines = 75.0
 
 Config.HungerIncrease    = math.random(25, 50) -- amount increased when drink_dog
 Config.ThirstIncrease    = math.random(25, 50) -- amount increased when feed_dog
-Config.Degrade           = math.random(3, 5)
-Config.QualityDegrade    = math.random(8, 12)
-Config.GrowthIncrease    = math.random(10, 20)
-Config.GrowthTimer       = 60000 -- 60000 = every 1 min / testing 1000 = 1 seconds
+Config.DegradeDirt       = math.random(3, 5)
+Config.HappinessIncrease = math.random(8, 12)
+-- Config.GrowthIncrease    = math.random(10, 20)
+-- Config.GrowthTimer       = 60000 -- 60000 = every 1 min / testing 1000 = 1 seconds
 
 Config.XpPerFeed         = math.random(10, 20) -- The amount of XP every feed gives
 Config.XpPerClean        = math.random(1, 5) -- The amount of XP every feed gives
