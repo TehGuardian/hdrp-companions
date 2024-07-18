@@ -19,7 +19,6 @@ client_scripts {
     '@PolyZone/CircleZone.lua',
     '@PolyZone/ComboZone.lua',
     'client/client.lua',
-    'client/client-sell.lua',
 	'client/npcs.lua',
 	'client/pets.lua',
 }
@@ -27,7 +26,6 @@ client_scripts {
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/server.lua',
-    'server/server-sell.lua',
     'server/versionchecker.lua',
 }
 
