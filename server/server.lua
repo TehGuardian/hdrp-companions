@@ -341,63 +341,9 @@ RegisterServerEvent('tbrp_companions:server:setpetAttributesGrowth', function(gr
     MySQL.update('UPDATE tbrp_companions SET growth = ? WHERE id = ? AND citizenid = ?', { growth, activepet, Player.PlayerData.citizenid })
 end)
 
---------------------------------------------------------------------------------------------------
--- pet check system
---------------------------------------------------------------------------------------------------
-UpkeepIntervalPet = function()
-
-    local result = MySQL.query.await('SELECT * FROM tbrp_companions')
-
-    if not result then goto continue end
-
-    for i = 1, #result do
-        local id = result[i].id
-        local petname = result[i].name
-        local ownercid = result[i].citizenid
-        local currentTime = os.time()
-        local timeDifference = currentTime - result[i].born
-        local daysPassed = math.floor(timeDifference / (24 * 60 * 60))
-
-        if Config.Debug then
-            print(id, petname, ownercid, daysPassed)
-        end
-
-        if daysPassed == Config.PetDieAge then
-
-            -- delete pet
-            MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
-            TriggerEvent('rsg-log:server:CreateLog', 'horsetrainer', 'Pet Died', 'red', petname..' belonging to '..ownercid..' died of old age!')
-
-            -- telegram message to the pet owner
-            MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            {   ownercid,
-                'Pet Owner',
-                '22222222',
-                'Pet Stables',
-                petname..' passed away',
-                os.date("%x"),
-                'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
-            })
-
-            goto continue
-        end
-
-    end
-
-    ::continue::
-
-    if Config.CycleNotify then print('pet check cycle complete') end
-
-    SetTimeout(Config.CheckCycle * (60 * 1000), UpkeepIntervalPet)
-end
-
-SetTimeout(Config.CheckCycle * (60 * 1000), UpkeepIntervalPet)
-
-
 ------------------------------------------
 -- timer
 ------------------------------------------
-
 lib.cron.new(Config.CronupkeepJob, function ()
 
     local result = MySQL.query.await('SELECT * FROM tbrp_companions')
@@ -410,6 +356,8 @@ lib.cron.new(Config.CronupkeepJob, function ()
 
     for i = 1, #result do
 
+        local id = result[i].id
+        local petname = result[i].name
         local petid = result[i].dogid
         local owner = result[i].citizenid
         local live = result[i].live
@@ -430,34 +378,33 @@ lib.cron.new(Config.CronupkeepJob, function ()
                 hunger = hunger - 1
                 growth = growth + 1
 
-                if thirst < 50 or hunger < 50 then
+                if thirst < 75 or hunger < 75 then
                     happiness = happiness - 1
                 end
 
                 if thirst < 25 or hunger < 25 then
+                    live = live - 1
                     thirst = thirst - 1
                     hunger = hunger - 1
                     happiness = happiness - 1
                 end
 
                 if thirst == 0 and hunger > 0 then
-                    hunger = hunger - 1
                     live = live - 1
+                    hunger = hunger - 1
                     happiness = happiness - 1
                 end
 
                 if hunger == 0 and thirst > 0 then
-                    thirst = thirst - 1
                     live = live - 1
+                    thirst = thirst - 1
                     happiness = happiness - 1
                 end
 
                 if hunger == 0 and thirst == 0 then
                     live = live - 1
+                    happiness = happiness - 1
                 end
-
-                if hunger < 0 then hunger = 0 end
-                if thirst < 0 then thirst = 0 end
 
                 if dirt > 75 then
                     live = live - 2
@@ -465,10 +412,11 @@ lib.cron.new(Config.CronupkeepJob, function ()
                 end
 
                 if dirt > 50 then
-                    live = live - 1
                     happiness = happiness - 1
                 end
 
+                if hunger < 0 then hunger = 0 end
+                if thirst < 0 then thirst = 0 end
                 if dirt <= 0 then dirt = 0 end
                 if dirt >= 100 then dirt = 100 end
                 if live <= 0 then live = 0 end
@@ -482,13 +430,30 @@ lib.cron.new(Config.CronupkeepJob, function ()
                     MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet })
                 end
             else
-                if live <= 0 or daysPassed == Config.PetDieAge then live = 0 end
+                if live <= 0 then live = 0 end
 
                 updated = true
 
                 if updated then
-                    local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                    MySQL.update('UPDATE tbrp_companions SET live = ? WHERE dogid = ? AND active = ?', {live, petid, activepet })
+                    if daysPassed == Config.PetDieAge then
+                        -- delete pet
+                        MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
+                        TriggerEvent('rsg-log:server:CreateLog', 'horsetrainer', 'Pet Died', 'red', petname..' belonging to '..owner..' died of old age!')
+
+                        -- telegram message to the pet owner
+                        MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        {   owner,
+                            'Pet Owner',
+                            '22222222',
+                            'Pet Stables',
+                            petname..' passed away',
+                            os.date("%x"),
+                            'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
+                        })
+                    else
+                        local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+                        MySQL.update('UPDATE tbrp_companions SET live = ? WHERE dogid = ? AND active = ?', {live, petid, activepet })
+                    end
                 end
             end
         else -- growth >= 100
@@ -496,25 +461,26 @@ lib.cron.new(Config.CronupkeepJob, function ()
                 thirst = thirst - 1
                 hunger = hunger - 1
 
-                if thirst < 50 or hunger < 50 then
+                if thirst < 75 or hunger < 75 then
                     happiness = happiness - 1
                 end
 
                 if thirst < 25 or hunger < 25 then
+                    live = live - 1
                     thirst = thirst - 1
                     hunger = hunger - 1
                     happiness = happiness - 1
                 end
 
                 if thirst == 0 and hunger > 0 then
-                    hunger = hunger - 1
                     live = live - 1
+                    hunger = hunger - 1
                     happiness = happiness - 1
                 end
 
                 if hunger == 0 and thirst > 0 then
-                    thirst = thirst - 1
                     live = live - 1
+                    thirst = thirst - 1
                     happiness = happiness - 1
                 end
 
@@ -522,19 +488,17 @@ lib.cron.new(Config.CronupkeepJob, function ()
                     live = live - 1
                 end
 
-                if hunger <= 0 then hunger = 0 end
-                if thirst <= 0 then thirst = 0 end
-
                 if dirt > 75 then
                     live = live - 2
                     happiness = happiness - 1
                 end
 
                 if dirt > 50 then
-                    live = live - 1
                     happiness = happiness - 1
                 end
 
+                if hunger <= 0 then hunger = 0 end
+                if thirst <= 0 then thirst = 0 end
                 if dirt <= 0 then dirt = 0 end
                 if dirt >= 100 then dirt = 100 end
                 if live <= 0 then live = 0 end
@@ -547,13 +511,30 @@ lib.cron.new(Config.CronupkeepJob, function ()
                     MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, happiness, petid, activepet })
                 end
             else
-                if live <= 0 or daysPassed == Config.PetDieAge then live = 0 end
+                if live <= 0 then live = 0 end
 
                 updated = true
 
                 if updated then
-                    local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                    MySQL.update('UPDATE tbrp_companions SET live = ? WHERE dogid = ? AND active = ?', {live, petid, activepet })
+                    if daysPassed == Config.PetDieAge then
+                        -- delete pet
+                        MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
+                        TriggerEvent('rsg-log:server:CreateLog', 'horsetrainer', 'Pet Died', 'red', petname..' belonging to '..owner..' died of old age!')
+
+                        -- telegram message to the pet owner
+                        MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        {   owner,
+                            'Pet Owner',
+                            '22222222',
+                            'Pet Stables',
+                            petname..' passed away',
+                            os.date("%x"),
+                            'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
+                        })
+                    else
+                        local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+                        MySQL.update('UPDATE tbrp_companions SET live = ? WHERE dogid = ? AND active = ?', {live, petid, activepet })
+                    end
                 end
             end
         end
@@ -563,6 +544,7 @@ lib.cron.new(Config.CronupkeepJob, function ()
 
     if Config.CycleNotify then print('pet stats check complete') end
 end)
+
 
 --------------------------------------
 -- TRACK EVENT
