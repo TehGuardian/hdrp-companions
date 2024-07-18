@@ -418,64 +418,150 @@ lib.cron.new(Config.CronupkeepJob, function ()
         local growth = result[i].growth
         local happiness = result[i].happiness
         local dirt = result[i].dirt
+        local currentTime = os.time()
+        local timeDifference = currentTime - result[i].born
+        local daysPassed = math.floor(timeDifference / (24 * 60 * 60))
 
         local updated = false
 
-        if growth < 100 and live > 0 then
-            thirst = thirst - 1
-            hunger = hunger - 1
-            growth = growth + 1
-
-            if thirst < 75 or hunger < 75 then
-                happiness = happiness - 1
-            end
-
-            if live < 25 then
+        if growth < 100 then
+            if live > 0 then
                 thirst = thirst - 1
                 hunger = hunger - 1
-                happiness = happiness - 1
-            end
+                growth = growth + 1
 
-            if thirst == 0 and hunger > 0 then
-                hunger = hunger - 1
-            end
+                if thirst < 50 or hunger < 50 then
+                    happiness = happiness - 1
+                end
 
-            if hunger == 0 and thirst > 0 then
+                if thirst < 25 or hunger < 25 then
+                    thirst = thirst - 1
+                    hunger = hunger - 1
+                    happiness = happiness - 1
+                end
+
+                if thirst == 0 and hunger > 0 then
+                    hunger = hunger - 1
+                    live = live - 1
+                    happiness = happiness - 1
+                end
+
+                if hunger == 0 and thirst > 0 then
+                    thirst = thirst - 1
+                    live = live - 1
+                    happiness = happiness - 1
+                end
+
+                if hunger == 0 and thirst == 0 then
+                    live = live - 1
+                end
+
+                if hunger < 0 then hunger = 0 end
+                if thirst < 0 then thirst = 0 end
+
+                if dirt > 75 then
+                    live = live - 2
+                    happiness = happiness - 1
+                end
+
+                if dirt > 50 then
+                    live = live - 1
+                    happiness = happiness - 1
+                end
+
+                if dirt <= 0 then dirt = 0 end
+                if dirt >= 100 then dirt = 100 end
+                if live <= 0 then live = 0 end
+                if growth >= 100 then growth = 100 end
+                if happiness < 0 then happiness = 0 end
+
+                updated = true
+
+                if updated then
+                    local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+                    MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet })
+                end
+            else
+                if live <= 0 or daysPassed == Config.PetDieAge then live = 0 end
+
+                updated = true
+
+                if updated then
+                    local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+                    MySQL.update('UPDATE tbrp_companions SET live = ? WHERE dogid = ? AND active = ?', {live, petid, activepet })
+                end
+            end
+        else -- growth >= 100
+            if live > 0 then
                 thirst = thirst - 1
+                hunger = hunger - 1
+
+                if thirst < 50 or hunger < 50 then
+                    happiness = happiness - 1
+                end
+
+                if thirst < 25 or hunger < 25 then
+                    thirst = thirst - 1
+                    hunger = hunger - 1
+                    happiness = happiness - 1
+                end
+
+                if thirst == 0 and hunger > 0 then
+                    hunger = hunger - 1
+                    live = live - 1
+                    happiness = happiness - 1
+                end
+
+                if hunger == 0 and thirst > 0 then
+                    thirst = thirst - 1
+                    live = live - 1
+                    happiness = happiness - 1
+                end
+
+                if hunger == 0 and thirst == 0 then
+                    live = live - 1
+                end
+
+                if hunger <= 0 then hunger = 0 end
+                if thirst <= 0 then thirst = 0 end
+
+                if dirt > 75 then
+                    live = live - 2
+                    happiness = happiness - 1
+                end
+
+                if dirt > 50 then
+                    live = live - 1
+                    happiness = happiness - 1
+                end
+
+                if dirt <= 0 then dirt = 0 end
+                if dirt >= 100 then dirt = 100 end
+                if live <= 0 then live = 0 end
+                if happiness <= 0 then happiness = 0 end
+
+                updated = true
+
+                if updated then
+                    local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+                    MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, happiness, petid, activepet })
+                end
+            else
+                if live <= 0 or daysPassed == Config.PetDieAge then live = 0 end
+
+                updated = true
+
+                if updated then
+                    local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+                    MySQL.update('UPDATE tbrp_companions SET live = ? WHERE dogid = ? AND active = ?', {live, petid, activepet })
+                end
             end
-
-            if dirt == 0 and dirt > 0 then
-                live = live - 1
-                happiness = happiness - 1
-            end
-
-            if growth > 100 then growth = 100 end
-
-            if live < 0 then live = 0 end
-            if hunger < 0 then hunger = 0 end
-            if thirst < 0 then thirst = 0 end
-            if happiness < 0 then happiness = 0 end
-
-            if dirt > 100 then dirt = 100 end
-            if dirt < 0 then dirt = 0 end
-
-            updated = true
-
-            if updated then
-                local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet })
-            end
-            -- TriggerEvent('hdrp-cooking:server:updateProps')
-        -- else
-            -- if live < 0.0 then live = 0.0 end
-            -- TriggerEvent('hdrp-cooking:server:updateProps')
         end
-
     end
 
     ::continue::
 
-    if Config.CycleNotify then print('pet stats check cycle complete') end
+    if Config.CycleNotify then print('pet stats check complete') end
 end)
 
 --------------------------------------
