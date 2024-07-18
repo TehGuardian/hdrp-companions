@@ -56,11 +56,7 @@ RSGCore.Functions.CreateUseableItem("petreviver", function(source, item)
     if not Player then return end
 
     local cid = Player.PlayerData.citizenid
-    local result = MySQL.query.await('SELECT * FROM tbrp_companions WHERE citizenid=@citizenid AND active=@active',
-    {
-        ['@citizenid'] = cid,
-        ['@active'] = 1
-    })
+    local result = MySQL.query.await('SELECT * FROM tbrp_companions WHERE citizenid = ? AND active = ?', { cid, 1 })
 
     if not result[1] then
         RSGCore.Functions.Notify(src, 'no_active_pet', 'error', 3000)
@@ -88,7 +84,7 @@ end)
 RSGCore.Functions.CreateCallback('tbrp_companions:server:GetAllPets', function(source, cb)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
-    local pets = MySQL.query.await('SELECT * FROM tbrp_companions WHERE citizenid=@citizenid', { ['@citizenid'] = Player.PlayerData.citizenid })
+    local pets = MySQL.query.await('SELECT * FROM tbrp_companions WHERE citizenid= ?', { Player.PlayerData.citizenid })
     if pets[1] ~= nil then
         cb(pets)
     else
@@ -272,14 +268,15 @@ end)
 RegisterServerEvent('tbrp_companions:server:brushpet', function(item)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
+    local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+    local happinesspet = MySQL.scalar.await('SELECT happiness FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+    local xppet = MySQL.scalar.await('SELECT dogxp FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+
     if Player.Functions.GetItemByName(item) then
         TriggerClientEvent("tbrp_companions:client:playerbrushpet", src, item)
-        local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
         local dirt = 0.0
-        MySQL.update('UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?', { dirt, activepet, Player.PlayerData.citizenid })
-        local xppet = MySQL.scalar.await('SELECT dogxp FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-        MySQL.update("UPDATE tbrp_companions SET dogxp = ? WHERE id = ? AND citizenid = ?", { xppet + Config.XpPerClean, activepet, Player.PlayerData.citizenid})
-        TriggerClientEvent('tbrp_companions:client:UpdateDogFed', src, xppet + Config.XpPerClean)
+        MySQL.update('UPDATE tbrp_companions SET dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?', { dirt, happinesspet + Config.QualityDegrade, xppet + Config.XpPerClean, activepet, Player.PlayerData.citizenid })
+        -- TriggerClientEvent('tbrp_companions:client:UpdateDogFed', src, xppet + Config.XpPerClean)
     else
         TriggerClientEvent('RSGCore:Notify', src, "You don't have "..item, 'error')
     end
@@ -289,37 +286,35 @@ RegisterServerEvent('tbrp_companions:server:eatpet', function(item)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+    local hungerpet = MySQL.scalar.await('SELECT hunger FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+    local thirstpet = MySQL.scalar.await('SELECT thirst FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+    local dirtpet = MySQL.scalar.await('SELECT dirt FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+    local happinesspet = MySQL.scalar.await('SELECT happiness FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+    local xppet = MySQL.scalar.await('SELECT dogxp FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+
     if Player.Functions.GetItemByName(item) then
         Player.Functions.RemoveItem(item, 1, item.slot)
         TriggerClientEvent("tbrp_companions:client:playerfeedpet", src, item)
         if item == Config.AnimalDrink then
 			Player.Functions.RemoveItem(Config.AnimalDrink, 1)
 			TriggerClientEvent('inventory:client:ItemBox', src, RSGCore.Shared.Items[Config.AnimalDrink], "remove")
-            local thirstpet = MySQL.scalar.await('SELECT thirst FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-            MySQL.update('UPDATE tbrp_companions SET thirst = ? WHERE id = ? AND citizenid = ?', { thirstpet + Config.ThirstIncrease, activepet, Player.PlayerData.citizenid })
+
             if thirstpet >= 100 then
                 thirstpet = 100
-                MySQL.update("UPDATE tbrp_companions SET thirst = ? WHERE id = ? AND citizenid = ?", { thirstpet, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dirt = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirstpet, dirtpet + Config.Degrade, xppet, activepet, Player.PlayerData.citizenid})
             else
-                MySQL.update("UPDATE tbrp_companions SET thirst = ? WHERE id = ? AND citizenid = ?", { thirstpet + Config.ThirstIncrease, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dirt = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirstpet + Config.ThirstIncrease, dirtpet + Config.Degrade, xppet + Config.XpPerDrink, activepet, Player.PlayerData.citizenid})
             end
-            local xppet = MySQL.scalar.await('SELECT dogxp FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-            MySQL.update("UPDATE tbrp_companions SET dogxp = ? WHERE id = ? AND citizenid = ?", { xppet + Config.XpPerDrink, activepet, Player.PlayerData.citizenid})
-            TriggerClientEvent('tbrp_companions:client:UpdateDogFed', src, xppet + Config.XpPerDrink)
         elseif item == Config.AnimalFood then
 			Player.Functions.RemoveItem(Config.AnimalFood, 1)
 			TriggerClientEvent('inventory:client:ItemBox', src, RSGCore.Shared.Items[Config.AnimalFood], "remove")
-            local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-            local hungerpet = MySQL.scalar.await('SELECT hunger FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+
             if hungerpet >= 100 then
                 hungerpet = 100
-                MySQL.update("UPDATE tbrp_companions SET hunger = ? WHERE id = ? AND citizenid = ?", { hungerpet, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hungerpet, dirtpet + Config.Degrade, happinesspet + Config.QualityDegrade, xppet, activepet, Player.PlayerData.citizenid})
             else
-                MySQL.update("UPDATE tbrp_companions SET hunger = ? WHERE id = ? AND citizenid = ?", { hungerpet + Config.HungerIncrease, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hungerpet + Config.HungerIncrease, dirtpet + Config.Degrade, happinesspet + Config.QualityDegrade, xppet + Config.XpPerFeed, activepet, Player.PlayerData.citizenid})
             end
-            local xppet = MySQL.scalar.await('SELECT dogxp FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-            MySQL.update("UPDATE tbrp_companions SET dogxp = ? WHERE id = ? AND citizenid = ?", { xppet + Config.XpPerFood, activepet, Player.PlayerData.citizenid})
-            TriggerClientEvent('tbrp_companions:client:UpdateDogFed', src, xppet + Config.XpPerFood)
         end
     else
         TriggerClientEvent('RSGCore:Notify', src, "You don't have "..item, 'error')
@@ -331,7 +326,6 @@ RegisterServerEvent('tbrp_companions:server:setpetAttributes', function(dirt)
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
     MySQL.update('UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?', { dirt, activepet, Player.PlayerData.citizenid })
-
 end)
 
 RegisterServerEvent('tbrp_companions:server:setpetAttributesGrowth', function(growth)
@@ -344,6 +338,7 @@ end)
 ------------------------------------------
 -- timer
 ------------------------------------------
+
 lib.cron.new(Config.CronupkeepJob, function ()
 
     local result = MySQL.query.await('SELECT * FROM tbrp_companions')
@@ -544,7 +539,6 @@ lib.cron.new(Config.CronupkeepJob, function ()
 
     if Config.CycleNotify then print('pet stats check complete') end
 end)
-
 
 --------------------------------------
 -- TRACK EVENT
