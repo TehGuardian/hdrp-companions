@@ -1268,6 +1268,27 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
                         end,
                         arrow = true
                     }
+                    options[#options + 1] = {
+                        title = 'Carry',
+                        icon = 'fa-solid fa-share',
+                        onSelect = function()
+                        end,
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Take snoulder',
+                        icon = 'fa-solid fa-share',
+                        onSelect = function()
+                        end,
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Animations',
+                        icon = 'fa-solid fa-share',
+                        onSelect = function()
+                        end,
+                        arrow = true
+                    }
                     -- options[#options + 1] = {
                     --     title = 'Acariciar',
                     --     icon = 'fa-solid fa-horse',

@@ -215,13 +215,10 @@ RegisterServerEvent('tbrp_companions:server:deletepet', function(data)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local modelPet = nil
-    local dogid = data.dogid
-    local player_pets = MySQL.query.await('SELECT * FROM tbrp_companions WHERE id = @id AND `citizenid` = @citizenid', {
-        ['@id'] = dogid,
-        ['@citizenid'] = Player.PlayerData.citizenid
-    })
+    local petid = data.dogid
+    local player_pets = MySQL.query.await('SELECT * FROM tbrp_companions WHERE id = ? AND `citizenid` = ?', { petid, Player.PlayerData.citizenid })
     for i = 1, #player_pets do
-        if tonumber(player_pets[i].id) == tonumber(dogid) then
+        if tonumber(player_pets[i].id) == tonumber(petid) then
             modelPet = player_pets[i].dog
             MySQL.update('DELETE FROM tbrp_companions WHERE id = ? AND citizenid = ?', { data.dogid, Player.PlayerData.citizenid })
         end
@@ -389,14 +386,97 @@ UpkeepIntervalPet = function()
 
     ::continue::
 
-    if Config.EnableServerNotify then
-        print('pet check cycle complete')
-    end
+    if Config.CycleNotify then print('pet check cycle complete') end
 
     SetTimeout(Config.CheckCycle * (60 * 1000), UpkeepIntervalPet)
 end
 
 SetTimeout(Config.CheckCycle * (60 * 1000), UpkeepIntervalPet)
+
+
+------------------------------------------
+-- timer
+------------------------------------------
+
+lib.cron.new(Config.CronupkeepJob, function ()
+
+    local result = MySQL.query.await('SELECT * FROM tbrp_companions')
+    if not result then
+        if Config.CycleNotify then
+            print('No results from database query')
+        end
+        return
+    end
+
+    for i = 1, #result do
+
+        local petid = result[i].dogid
+        local owner = result[i].citizenid
+        local live = result[i].live
+        local hunger = result[i].hunger
+        local thirst = result[i].thirst
+        local growth = result[i].growth
+        local happiness = result[i].happiness
+        local dirt = result[i].dirt
+
+        local updated = false
+
+        if growth < 100 and live > 0 then
+            thirst = thirst - 1
+            hunger = hunger - 1
+            growth = growth + 1
+
+            if thirst < 75 or hunger < 75 then
+                happiness = happiness - 1
+            end
+
+            if live < 25 then
+                thirst = thirst - 1
+                hunger = hunger - 1
+                happiness = happiness - 1
+            end
+
+            if thirst == 0 and hunger > 0 then
+                hunger = hunger - 1
+            end
+
+            if hunger == 0 and thirst > 0 then
+                thirst = thirst - 1
+            end
+
+            if dirt == 0 and dirt > 0 then
+                live = live - 1
+                happiness = happiness - 1
+            end
+
+            if growth > 100 then growth = 100 end
+
+            if live < 0 then live = 0 end
+            if hunger < 0 then hunger = 0 end
+            if thirst < 0 then thirst = 0 end
+            if happiness < 0 then happiness = 0 end
+
+            if dirt > 100 then dirt = 100 end
+            if dirt < 0 then dirt = 0 end
+
+            updated = true
+
+            if updated then
+                local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+                MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet })
+            end
+            -- TriggerEvent('hdrp-cooking:server:updateProps')
+        -- else
+            -- if live < 0.0 then live = 0.0 end
+            -- TriggerEvent('hdrp-cooking:server:updateProps')
+        end
+
+    end
+
+    ::continue::
+
+    if Config.CycleNotify then print('pet stats check cycle complete') end
+end)
 
 --------------------------------------
 -- TRACK EVENT
