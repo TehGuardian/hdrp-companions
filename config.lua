@@ -136,6 +136,7 @@ Config.PetsLocations = {
 -- Pets Attributes
 --------------------
 Config.SpawnOnRoadOnly    = false -- always spawn on road
+Config.CheckCycle         = 1 -- pet check system (mins)
 Config.StoreFleedPet      = true -- store pet if flee is used
 Config.CycleNotify        = true
 Config.CronupkeepJob      = '*/1 * * * *'          -- cronjob time (every hour = 0 * * * *) / (every 30 mins = */30 * * * *)
@@ -146,16 +147,23 @@ Config.StartingHunger   = 75.0
 Config.StartingThirst   = 75.0
 Config.StartingHappines = 75.0
 
+Config.AnimalFood        = 'feed_dog' -- The item required to feed and/or level up your pet
+Config.AnimalDrink       = 'drink_dog'
 Config.HungerIncrease    = math.random(25, 50) -- amount increased when drink_dog
 Config.ThirstIncrease    = math.random(25, 50) -- amount increased when feed_dog
 Config.DegradeDirt       = math.random(3, 5)
-Config.HappinessIncrease = math.random(8, 12)
--- Config.GrowthIncrease    = math.random(10, 20)
--- Config.GrowthTimer       = 60000 -- 60000 = every 1 min / testing 1000 = 1 seconds
+Config.HappinessIncrease    = math.random(8, 12)
 
 Config.XpPerFeed         = math.random(10, 20) -- The amount of XP every feed gives
 Config.XpPerClean        = math.random(1, 5) -- The amount of XP every feed gives
 Config.XpPerDrink        = math.random(5, 10) -- The amount of XP every feed gives
+
+Config.PetAttributes = {
+    FollowDistance  = 3,
+    Invincible      = false,
+    SpawnLimiter    = 100, -- Set this to limit how often a pet can be spawned or 0 to disable it
+    DeathCooldown   = 300, -- Time before a pet can be respawned after dying
+}
 
 Config.CallPetKey         = true --Set to true to use the CallPet hotkey below
 
@@ -169,18 +177,18 @@ Config.Prompt = {
     PetTrack   = 0x8FFC75D6, -- SHIFT INPUT_LOOK_BEHIND
 }
 
-Config.DefensiveMode    = true --If set to true, pets will become hostile to anything you are in combat with
-Config.SearchRadius     = 50.0 -- How far the pet will search for a hunted animal. Always a float value i.e 50.0
-
 Config.NoFear           = true --Set this to true if you are using Bears/Wolves as pets so that your horses won't be in constant fear and wont get stuck on the eating dead body animation.
-Config.RaiseAnimal      = true -- If this is enabled, you will have to feed your animal for it to gain XP and grow. Only full grown pets can use commands (halfway you get the Stay command)
-Config.FullGrownXp      = 1000 -- The amount of XP that it is fully grown. At the halfway point the pet will grow to 50% of max size.
 
+-- Config.DefensiveMode    = true --If set to true, pets will become hostile to anything you are in combat with
+-- Config.SearchRadius     = 50.0 -- How far the pet will search for a hunted animal. Always a float value i.e 50.0
+-- Config.RaiseAnimal      = true -- If this is enabled, you will have to feed your animal for it to gain XP and grow. Only full grown pets can use commands (halfway you get the Stay command)
+-- Config.FullGrownXp      = 1000 -- The amount of XP that it is fully grown. At the halfway point the pet will grow to 50% of max size.
+-- Config.GrowthIncrease    = math.random(10, 20)
+-- Config.GrowthTimer       = 60000 -- 60000 = every 1 min / testing 1000 = 1 seconds
 
-Config.NotifyWhenHungry = true -- Puts up a little notification letting you know your pet can be fed. 
-Config.FeedInterval     = 1800 -- 1800 = 30 min, How often in seconds the pet will want to be fed
-Config.AnimalFood       = 'feed_dog' -- The item required to feed and/or level up your pet
-Config.AnimalDrink      = 'drink_dog'
+-- Config.NotifyWhenHungry = true -- Puts up a little notification letting you know your pet can be fed. 
+-- Config.FeedInterval     = 1800 -- 1800 = 30 min, How often in seconds the pet will want to be fed
+
 --The attack command sets your animal to attack a target
 Config.AttackCommand     = true -- Set true to be able to send your pet to attack a target you are locked on (holding right-click on them)
 Config.AttackOnly = {-- <<Only have one of these 3 be true or all 3 false if you want the attack prompt on all targets -->>
@@ -195,13 +203,6 @@ Config.TrackOnly = {  -- <<Only have one of these 3 be true or all 3 false if yo
     Players  = false, -- The track command works on only player peds
     Animals  = false, -- The track command works on animal types, not players/peds
     NPC      = false, -- If this is enabled, you can track NPC peds and animals but not people
-}
-
-Config.PetAttributes = {
-    FollowDistance  = 3,
-    Invincible      = false,
-    SpawnLimiter    = 100, -- Set this to limit how often a pet can be spawned or 0 to disable it
-    DeathCooldown   = 300, -- Time before a pet can be respawned after dying
 }
 ---------------------------------
 -- Pets carry animals
