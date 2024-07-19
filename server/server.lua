@@ -19,6 +19,8 @@ local function sendToDiscord(color, name, message, footer, type)
         PerformHttpRequest(Config['Webhooks']['petinfo'], function(err, text, headers) end, 'POST', json.encode({username = name, embeds = embed}), { ['Content-Type'] = 'application/json' })
     elseif type == "trader" then
         PerformHttpRequest(Config['Webhooks']['trader'], function(err, text, headers) end, 'POST', json.encode({username = name, embeds = embed}), { ['Content-Type'] = 'application/json' })
+    elseif type == "tarderPlayer" then
+        PerformHttpRequest(Config['Webhooks']['tarderPlayer'], function(err, text, headers) end, 'POST', json.encode({username = name, embeds = embed}), { ['Content-Type'] = 'application/json' })
     end
 end
 
@@ -107,10 +109,7 @@ end)
 RegisterServerEvent('tbrp_companions:server:BuyPet', function(price, model, stablepet, dogname, gender)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
-    if (Player.PlayerData.money.cash < price) then
-        TriggerClientEvent('RSGCore:Notify', src, 'error.no_cash', 'error')
-        return
-    end
+
     local dogid = GeneratePetid()
 
 	local skin = math.floor(math.random(0, 2))
@@ -135,8 +134,44 @@ RegisterServerEvent('tbrp_companions:server:BuyPet', function(price, model, stab
         ['@thirst'] = thirst,
         ['@happiness'] = happiness,
     })
-    Player.Functions.RemoveMoney('cash', price)
-    TriggerClientEvent('RSGCore:Notify', src, 'success.pet_owned' , 'success')
+
+    if Config.Payment == 'item' then
+    	local cashItem = Player.Functions.GetItemByName(Config.PaymentType)
+    	local cashAmount = cashItem.amount
+
+        if not cashItem and tonumber(cashAmount) < tonumber(price) then
+            TriggerClientEvent('RSGCore:Notify', src, 'error.no_cash', 'error')
+            return
+        else
+            Player.Functions.RemoveItem(Config.PaymentType, price, 'pet-stake')
+            TriggerClientEvent('inventory:client:ItemBox', src, RSGCore.Shared.Items[Config.PaymentType], "remove")
+            TriggerClientEvent('RSGCore:Notify', src, 'success.pet_owned' , 'success')
+        end
+    elseif Config.Payment == 'money' then
+	    local currentCash = Player.PlayerData.money[Config.PaymentType]
+        if tonumber(currentCash) < tonumber(price) then
+            TriggerClientEvent('RSGCore:Notify', src, 'error.no_cash', 'error')
+            return
+        else
+            Player.Functions.RemoveMoney(Config.PaymentType, price, 'pet-stake')
+            TriggerClientEvent('RSGCore:Notify', src, 'success.pet_owned' , 'success')
+        end
+    end
+
+    local discordMessage = string.format(
+            "Citizenid:** %s \n**Ingame ID:** %d \n**Name:** %s %s \n**Pet ID:** %s \n**Pet name:** %s \n**Pet model:** %s \n** Pay $:** %.2f**",
+            Player.PlayerData.citizenid,
+            Player.PlayerData.cid,
+            Player.PlayerData.charinfo.firstname,
+            Player.PlayerData.charinfo.lastname,
+            dogid,
+            dogname,
+            model,
+            price
+        )
+    TriggerClientEvent('ox_lib:notify', src, { title = dogname.. ' pet buy for'.. price, type = 'inform', duration = 5000 })
+    sendToDiscord(16753920,	"Companions | BUY PET", discordMessage, "Trader for RSG Framework", "trader")
+
 end)
 
 ------------------------
@@ -149,6 +184,18 @@ RegisterNetEvent("tbrp_companions:server:TradePet", function(playerId, petId, so
     MySQL.update('UPDATE tbrp_companions SET citizenid = ? WHERE dogid = ? AND active = ?', {Playercid2, petId, 1})
     MySQL.update('UPDATE tbrp_companions SET active = ? WHERE citizenid = ? AND active = ?', {0, Playercid2, 1})
     TriggerClientEvent('RSGCore:Notify', playerId, 'pet owned', 'success')
+
+    local discordMessage = string.format(
+        "Citizenid:** %s \n**Ingame ID:** %d \n**Name:** %s %s \n**Player ID:** %s pet owned \n**Pet ID:** %s **",
+        Player2.PlayerData.citizenid,
+        Player2.PlayerData.cid,
+        Player2.PlayerData.charinfo.firstname,
+        Player2.PlayerData.charinfo.lastname,
+        playerId,
+        petId
+    )
+
+    sendToDiscord(16753920,	"Companions | TRADE PET", discordMessage, "Trader for RSG Framework", "tarderPlayer")
 end)
 
 -- generate dogid
@@ -212,6 +259,7 @@ RegisterServerEvent('tbrp_companions:server:deletepet', function(data)
     local Player = RSGCore.Functions.GetPlayer(src)
     local modelPet = nil
     local petid = data.dogid
+    local petname = data.name
     local player_pets = MySQL.query.await('SELECT * FROM tbrp_companions WHERE id = ? AND `citizenid` = ?', { petid, Player.PlayerData.citizenid })
     for i = 1, #player_pets do
         if tonumber(player_pets[i].id) == tonumber(petid) then
@@ -222,8 +270,27 @@ RegisterServerEvent('tbrp_companions:server:deletepet', function(data)
     for k, v in pairs(Config.PetBuySpawn) do
         if v.petmodel == modelPet then
             local sellprice = v.petprice * 0.5
-            Player.Functions.AddMoney('cash', sellprice)
-            TriggerClientEvent('RSGCore:Notify', src, 'pet sold for'..sellprice, 'success')
+
+            if Config.Payment == 'item' then
+                Player.Functions.AddItem(Config.PaymentType, sellprice, 'sellvendor-sold')
+                TriggerClientEvent('inventory:client:ItemBox', src, RSGCore.Shared.Items[Config.PaymentType], "add")
+            elseif Config.Payment == 'money' then
+                Player.Functions.AddMoney(Config.PaymentType, sellprice, 'sellvendor-sold')
+            end
+
+            local discordMessage = string.format(
+                    "Citizenid:** %s \n**Ingame ID:** %d \n**Name:** %s %s \n**Pet ID:** %s \n**Pet name:** %s \n**Pet model:** %s \n** Recive $:** %.2f**",
+                    Player.PlayerData.citizenid,
+                    Player.PlayerData.cid,
+                    Player.PlayerData.charinfo.firstname,
+                    Player.PlayerData.charinfo.lastname,
+                    petid,
+                    petname,
+                    modelPet,
+                    sellprice
+                )
+            TriggerClientEvent('ox_lib:notify', src, { title = petname.. ' pet sold for'.. sellprice, type = 'inform', duration = 5000 })
+            sendToDiscord(16753920,	"Companions | VENDOR", discordMessage, "Trader for RSG Framework", "trader")
         end
     end
 end)
@@ -275,7 +342,7 @@ RegisterServerEvent('tbrp_companions:server:brushpet', function(item)
     if Player.Functions.GetItemByName(item) then
         TriggerClientEvent("tbrp_companions:client:playerbrushpet", src, item)
         local dirt = 0.0
-        MySQL.update('UPDATE tbrp_companions SET dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?', { dirt, happinesspet + Config.QualityDegrade, xppet + Config.XpPerClean, activepet, Player.PlayerData.citizenid })
+        MySQL.update('UPDATE tbrp_companions SET dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?', { dirt, happinesspet + Config.HappinessIncrease, xppet + Config.XpPerClean, activepet, Player.PlayerData.citizenid })
         -- TriggerClientEvent('tbrp_companions:client:UpdateDogFed', src, xppet + Config.XpPerClean)
     else
         TriggerClientEvent('RSGCore:Notify', src, "You don't have "..item, 'error')
@@ -301,9 +368,9 @@ RegisterServerEvent('tbrp_companions:server:eatpet', function(item)
 
             if thirstpet >= 100 then
                 thirstpet = 100
-                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dirt = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirstpet, dirtpet + Config.Degrade, xppet, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dirt = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirstpet, dirtpet + Config.DegradeDirt, xppet, activepet, Player.PlayerData.citizenid})
             else
-                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dirt = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirstpet + Config.ThirstIncrease, dirtpet + Config.Degrade, xppet + Config.XpPerDrink, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dirt = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirstpet + Config.ThirstIncrease, dirtpet + Config.DegradeDirt, xppet + Config.XpPerDrink, activepet, Player.PlayerData.citizenid})
             end
         elseif item == Config.AnimalFood then
 			Player.Functions.RemoveItem(Config.AnimalFood, 1)
@@ -311,9 +378,9 @@ RegisterServerEvent('tbrp_companions:server:eatpet', function(item)
 
             if hungerpet >= 100 then
                 hungerpet = 100
-                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hungerpet, dirtpet + Config.Degrade, happinesspet + Config.QualityDegrade, xppet, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hungerpet, dirtpet + Config.DegradeDirt, happinesspet + Config.HappinessIncrease, xppet, activepet, Player.PlayerData.citizenid})
             else
-                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hungerpet + Config.HungerIncrease, dirtpet + Config.Degrade, happinesspet + Config.QualityDegrade, xppet + Config.XpPerFeed, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hungerpet + Config.HungerIncrease, dirtpet + Config.DegradeDirt, happinesspet + Config.HappinessIncrease, xppet + Config.XpPerFeed, activepet, Player.PlayerData.citizenid})
             end
         end
     else
@@ -325,14 +392,16 @@ RegisterServerEvent('tbrp_companions:server:setpetAttributes', function(dirt)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-    MySQL.update('UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?', { dirt, activepet, Player.PlayerData.citizenid })
+    local dirtpet = MySQL.scalar.await('SELECT dirt FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+    MySQL.update('UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?', { dirtpet + dirt, activepet, Player.PlayerData.citizenid })
 end)
 
 RegisterServerEvent('tbrp_companions:server:setpetAttributesGrowth', function(growth)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-    MySQL.update('UPDATE tbrp_companions SET growth = ? WHERE id = ? AND citizenid = ?', { growth, activepet, Player.PlayerData.citizenid })
+    local growthpet = MySQL.scalar.await('SELECT growth FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
+    MySQL.update('UPDATE tbrp_companions SET growth = ? WHERE id = ? AND citizenid = ?', { growthpet + growth, activepet, Player.PlayerData.citizenid })
 end)
 
 ------------------------------------------
@@ -364,171 +433,213 @@ lib.cron.new(Config.CronupkeepJob, function ()
         local currentTime = os.time()
         local timeDifference = currentTime - result[i].born
         local daysPassed = math.floor(timeDifference / (24 * 60 * 60))
-
+        local active = result[i].active
         local updated = false
 
-        if growth < 100 then
-            if live > 0 then
-                thirst = thirst - 1
-                hunger = hunger - 1
-                growth = growth + 1
-
-                if thirst < 75 or hunger < 75 then
-                    happiness = happiness - 1
-                end
-
-                if thirst < 25 or hunger < 25 then
-                    live = live - 1
+        if active == true then
+            if growth < 100 then
+                if live > 0 then
                     thirst = thirst - 1
                     hunger = hunger - 1
-                    happiness = happiness - 1
-                end
+                    growth = growth + 1
 
-                if thirst == 0 and hunger > 0 then
-                    live = live - 1
-                    hunger = hunger - 1
-                    happiness = happiness - 1
-                end
+                    if thirst < 75 or hunger < 75 then
+                        happiness = happiness - 1
+                    end
 
-                if hunger == 0 and thirst > 0 then
-                    live = live - 1
-                    thirst = thirst - 1
-                    happiness = happiness - 1
-                end
+                    if thirst < 25 or hunger < 25 then
+                        live = live - 1
+                        thirst = thirst - 1
+                        hunger = hunger - 1
+                        happiness = happiness - 1
+                    end
 
-                if hunger == 0 and thirst == 0 then
-                    live = live - 1
-                    happiness = happiness - 1
-                end
+                    if thirst == 0 and hunger > 0 then
+                        live = live - 1
+                        hunger = hunger - 1
+                        happiness = happiness - 1
+                    end
 
-                if dirt > 75 then
-                    live = live - 2
-                    happiness = happiness - 1
-                end
+                    if hunger == 0 and thirst > 0 then
+                        live = live - 1
+                        thirst = thirst - 1
+                        happiness = happiness - 1
+                    end
 
-                if dirt > 50 then
-                    happiness = happiness - 1
-                end
+                    if hunger == 0 and thirst == 0 then
+                        live = live - 1
+                        happiness = happiness - 1
+                    end
 
-                if hunger < 0 then hunger = 0 end
-                if thirst < 0 then thirst = 0 end
-                if dirt <= 0 then dirt = 0 end
-                if dirt >= 100 then dirt = 100 end
-                if live <= 0 then live = 0 end
-                if growth >= 100 then growth = 100 end
-                if happiness < 0 then happiness = 0 end
+                    if dirt > 75 then
+                        live = live - 2
+                        happiness = happiness - 1
+                    end
 
-                updated = true
+                    if dirt > 50 then
+                        happiness = happiness - 1
+                    end
 
-                if updated then
-                    local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                    MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet })
-                end
-            else
-                if live <= 0 then live = 0 end
+                    if hunger < 0 then hunger = 0 end
+                    if thirst < 0 then thirst = 0 end
+                    if dirt <= 0 then dirt = 0 end
+                    if dirt >= 100 then dirt = 100 end
+                    if growth >= 100 then growth = 100 end
+                    if happiness < 0 then happiness = 0 end
 
-                updated = true
+                    updated = true
 
-                if updated then
-                    if daysPassed == Config.PetDieAge then
-                        -- delete pet
-                        MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
-                        TriggerEvent('rsg-log:server:CreateLog', 'horsetrainer', 'Pet Died', 'red', petname..' belonging to '..owner..' died of old age!')
-
-                        -- telegram message to the pet owner
-                        MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        {   owner,
-                            'Pet Owner',
-                            '22222222',
-                            'Pet Stables',
-                            petname..' passed away',
-                            os.date("%x"),
-                            'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
-                        })
-                    else
+                    if updated then
                         local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                        MySQL.update('UPDATE tbrp_companions SET live = ? WHERE dogid = ? AND active = ?', {live, petid, activepet })
+                        MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet })
+                    end
+                else
+                    if live <= 0 then live = 0 end
+                    if hunger > 0 then hunger = 0 end
+                    if thirst > 0 then thirst = 0 end
+                    if dirt < 100 then dirt = 100 end
+                    if happiness > 0 then happiness = 0 end
+
+                    updated = true
+
+                    if updated then
+                        if daysPassed == Config.PetDieAge then
+                            -- delete pet
+                            MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
+
+                            local discordMessage = string.format(
+                                "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died of old age!**",
+                                owner,
+                                petid,
+                                petname
+                            )
+
+                            sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+
+                            -- telegram message to the pet owner
+                            MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                            {   owner,
+                                'Pet Owner',
+                                '22222222',
+                                'Pet Stables',
+                                petname..' passed away',
+                                os.date("%x"),
+                                'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
+                            })
+                        else
+                            local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+                            MySQL.update('UPDATE tbrp_companions SET live = ?, hunger = ?, thirst = ?, dirt = ?, happiness = ?, WHERE dogid = ? AND active = ?', {live, hunger, thirst, dirt, happiness, petid, activepet })
+
+                            local discordMessage = string.format(
+                                "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died for a bad master!**",
+                                owner,
+                                petid,
+                                petname
+                            )
+
+                            sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+                        end
                     end
                 end
-            end
-        else -- growth >= 100
-            if live > 0 then
-                thirst = thirst - 1
-                hunger = hunger - 1
-
-                if thirst < 75 or hunger < 75 then
-                    happiness = happiness - 1
-                end
-
-                if thirst < 25 or hunger < 25 then
-                    live = live - 1
+            else -- growth >= 100
+                if live > 0 then
                     thirst = thirst - 1
                     hunger = hunger - 1
-                    happiness = happiness - 1
-                end
 
-                if thirst == 0 and hunger > 0 then
-                    live = live - 1
-                    hunger = hunger - 1
-                    happiness = happiness - 1
-                end
+                    if thirst < 75 or hunger < 75 then
+                        happiness = happiness - 1
+                    end
 
-                if hunger == 0 and thirst > 0 then
-                    live = live - 1
-                    thirst = thirst - 1
-                    happiness = happiness - 1
-                end
+                    if thirst < 25 or hunger < 25 then
+                        live = live - 1
+                        thirst = thirst - 1
+                        hunger = hunger - 1
+                        happiness = happiness - 1
+                    end
 
-                if hunger == 0 and thirst == 0 then
-                    live = live - 1
-                end
+                    if thirst == 0 and hunger > 0 then
+                        live = live - 1
+                        hunger = hunger - 1
+                        happiness = happiness - 1
+                    end
 
-                if dirt > 75 then
-                    live = live - 2
-                    happiness = happiness - 1
-                end
+                    if hunger == 0 and thirst > 0 then
+                        live = live - 1
+                        thirst = thirst - 1
+                        happiness = happiness - 1
+                    end
 
-                if dirt > 50 then
-                    happiness = happiness - 1
-                end
+                    if hunger == 0 and thirst == 0 then
+                        live = live - 1
+                    end
 
-                if hunger <= 0 then hunger = 0 end
-                if thirst <= 0 then thirst = 0 end
-                if dirt <= 0 then dirt = 0 end
-                if dirt >= 100 then dirt = 100 end
-                if live <= 0 then live = 0 end
-                if happiness <= 0 then happiness = 0 end
+                    if dirt > 75 then
+                        live = live - 2
+                        happiness = happiness - 1
+                    end
 
-                updated = true
+                    if dirt > 50 then
+                        happiness = happiness - 1
+                    end
 
-                if updated then
-                    local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                    MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, happiness, petid, activepet })
-                end
-            else
-                if live <= 0 then live = 0 end
+                    if hunger <= 0 then hunger = 0 end
+                    if thirst <= 0 then thirst = 0 end
+                    if dirt <= 0 then dirt = 0 end
+                    if dirt >= 100 then dirt = 100 end
+                    if happiness <= 0 then happiness = 0 end
 
-                updated = true
+                    updated = true
 
-                if updated then
-                    if daysPassed == Config.PetDieAge then
-                        -- delete pet
-                        MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
-                        TriggerEvent('rsg-log:server:CreateLog', 'horsetrainer', 'Pet Died', 'red', petname..' belonging to '..owner..' died of old age!')
-
-                        -- telegram message to the pet owner
-                        MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        {   owner,
-                            'Pet Owner',
-                            '22222222',
-                            'Pet Stables',
-                            petname..' passed away',
-                            os.date("%x"),
-                            'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
-                        })
-                    else
+                    if updated then
                         local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                        MySQL.update('UPDATE tbrp_companions SET live = ? WHERE dogid = ? AND active = ?', {live, petid, activepet })
+                        MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, happiness, petid, activepet })
+                    end
+                else
+                    if live <= 0 then live = 0 end
+                    if hunger > 0 then hunger = 0 end
+                    if thirst > 0 then thirst = 0 end
+                    if dirt < 100 then dirt = 100 end
+                    if happiness > 0 then happiness = 0 end
+
+                    updated = true
+
+                    if updated then
+                        if daysPassed == Config.PetDieAge then
+                            -- delete pet
+                            MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
+
+                            local discordMessage = string.format(
+                                "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died of old age!**",
+                                owner,
+                                petid,
+                                petname
+                            )
+
+                            sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+
+                            -- telegram message to the pet owner
+                            MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                            {   owner,
+                                'Pet Owner',
+                                '22222222',
+                                'Pet Stables',
+                                petname..' passed away',
+                                os.date("%x"),
+                                'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
+                            })
+                        else
+                            local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+                            MySQL.update('UPDATE tbrp_companions SET live = ?, hunger = ?, thirst = ?, dirt = ?, happiness = ?, WHERE dogid = ? AND active = ?', {live, hunger, thirst, dirt, happiness, petid, activepet })
+
+                            local discordMessage = string.format(
+                                "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died for a bad master!**",
+                                owner,
+                                petid,
+                                petname
+                            )
+
+                            sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+                        end
                     end
                 end
             end

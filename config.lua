@@ -14,6 +14,7 @@ Config.AlwaysOpen   = true -- if false configure the open/close times
 Config.OpenTime     = 8 -- store opens
 Config.CloseTime    = 20 -- store closes
 Config.Payment      = 'money' -- can 'item' or 'money'
+Config.PaymentType  = 'cash' -- can 'cash' or 'bloodmoney'
 Config.SellTime     = 3000 -- time sell all
 
 -- stable npc settings
@@ -204,6 +205,7 @@ Config.TrackOnly = {  -- <<Only have one of these 3 be true or all 3 false if yo
     Animals  = false, -- The track command works on animal types, not players/peds
     NPC      = false, -- If this is enabled, you can track NPC peds and animals but not people
 }
+
 ---------------------------------
 -- Pets carry animals
 --------------------
@@ -335,4 +337,137 @@ Config.PetBuySpawn = {
         petname = 'Australian Sheperd',
         stablepetid = 'blackwater'
     }
+}
+
+-------------------------
+-- EXTRA Webhooks / RANKING
+-----------------------
+
+Config.Webhooks = {
+    ["wildpet"] = "https://discord.com/api/webhooks/1248940878056394823/f_lq_PeslXPN0_k4ooRB0UJJNEdgpqCz04y911SfpOzfeciEh_rvKEt6TVxHishQbTa7",
+    ["petinfo"] = "https://discord.com/api/webhooks/1263651756626415646/XtPT_a4HIhgEuwtmaRvYvapJXW8zNAkgnn3cShzjOr-649MLLQLFRwy6vd67M_MpqCtS",
+    ["tarder"] = "https://discord.com/api/webhooks/1248299675400929290/sHnbVwQMuInW1YqyA2U_2KJKKKZCbostdPjAssvX8nl2DTZ_Hz5y8DEJZwGSTpquEcvU",
+    ["tarderPlayer"] = "https://discord.com/api/webhooks/1248983616734888038/sfrwUhRghpgan2xHsklh8MarNKvFX0wRrFehr4ixWu8gEXoIBV373Ar--wsdaXXjoLUD",
+}
+
+-------------------------
+-- EXTRA ANIMATIONS
+-----------------------
+
+Config.Animations = {
+	{
+        animname = 	'DRINK_GROUND',
+        dict = "amb_creature_mammal@world_dog_drink_ground@base@face",
+        dictname = "base",
+	},
+	{
+        animname = 	'INJURED_ON_GROUND',
+        dict = "amb_creature_mammal@world_dog_injured_on_ground@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'MARK_TERRITORY_A',
+        dict = "amb_creature_mammal@world_dog_mark_territory_a@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'BEGGING',
+        dict = "amb_creature_mammal@world_dog_begging@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'SLEEPING',
+        dict = "amb_creature_mammal@world_dog_sleeping@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'DIGGING',
+        dict = "amb_creature_mammal@world_dog_digging@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'BARKING_VICIOUS',
+        dict = "amb_creature_mammal@world_dog_barking_vicious@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'HOWLING',
+        dict = "amb_creature_mammal@world_dog_howling@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'BARK_GROWL',
+        dict = "amb_creature_mammal@world_dog_bark_growl@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'BARKING_GROUND',
+        dict = "amb_creature_mammal@world_dog_barking_ground@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'INJURED_ON_GROUND',
+        dict = "amb_creature_mammal@world_dog_injured_on_ground@death",
+        dictname = "death",
+	},
+	{	
+        animname = 	'HOWLING_SITTING',
+        dict = "amb_creature_mammal@world_dog_howling_sitting@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'BARKING_UP',
+        dict = "amb_creature_mammal@world_dog_barking_up@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'SITTING',
+        dict = "amb_creature_mammal@world_dog_sitting@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'SNIFFING_GROUND',
+        dict = "amb_creature_mammal@world_dog_sniffing_ground@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'SNIFFING_GROUND_WANDER',
+        dict = "amb_creature_mammal@world_dog_sniffing_ground_wander@wander_a@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'RESTING',
+        dict = "amb_creature_mammal@world_dog_resting@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'WAGON',
+        dict = "amb_creature_mammal@world_dog_wagon@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'GUARD_GROWL',
+        dict = "amb_creature_mammal@world_dog_guard_growl@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'POOPING',
+        dict = "amb_creature_mammal@world_dog_pooping@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'EATING_GROUND',
+        dict = "amb_creature_mammal@world_dog_eating_ground@base",
+        dictname = "base",
+	},
+	{	
+        animname = 	'ROLL_GROUND',
+        dict = "amb_creature_mammal@world_dog_roll_ground@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'STUNNED_ON_GROUND',
+        dict = "amb_creature_mammal@world_dog_stunned_on_ground@base",
+        dictname = "base",
+	},
 }

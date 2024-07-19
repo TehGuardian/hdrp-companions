@@ -181,11 +181,11 @@ RegisterCommand("fleepet", function() --  COMMAND
 end, false)
 
 RegisterCommand('setpetname', function() -- rename pet name command
-    local input = lib.inputDialog('pet_rename', {
+    local input = lib.inputDialog('Quieres cambiar el nombre de la mascota?', {
         {
             type = 'input',
             isRequired = true,
-            label = 'pet_setname',
+            label = 'Cual es el nuevo nombre?',
             icon = 'fas fa-paw'
         },
     })
@@ -279,49 +279,51 @@ end)
 
 -- PETSHOP OPEN AND MENUS
 RegisterNetEvent('tbrp_companions:client:openpetshop', function(stablepetid)
-	lib.registerContext({
-		id = 'petshop_menu',
-		title = Lang:t('label.petshop'),
-		options = {
-            {   title = 'view pets',
-                description = 'pets view pets',
-                icon = 'fa-solid fa-eye',
-                event = 'tbrp_companions:client:menuinfo',
-                args = { stablepetid = stablepetid },
-                arrow = true
-            },
-			{   title = Lang:t('label.petshop_3'),
-                icon = 'fa-solid fa-coins',
-                event = 'tbrp_companions:client:MenuDel',
-                arrow = true
-            },
-            {   title = 'Trade',
-                description = 'pet trade',
-                icon = 'fa-solid fa-people-arrows',
-                event = 'tbrp_companions:client:tradepet',
-                arrow = true
-            },
-			{   title = "Vender animales",
-                icon = 'fas fa-shopping-basket',
-                event = 'hdrp-companions:client:openSellMenu',
-                args = { stablepetid = stablepetid },
-            },
-			{	title = Lang:t('label.petshop_2'),
-				icon = 'fa-solid fa-box',
-				event = 'tbrp_companions:client:OpenPetShop',
-				arrow = true
-			},
-            {   title = 'pet_store_pet',
-                description = 'pet_store_pet_sub',
-                icon = 'fa-solid fa-warehouse',
-                event = 'tbrp_companions:client:storepet',
-                args = { stablepetid = stablepetid },
-                arrow = true
-            },
-		}
-	})
-	lib.showContext('petshop_menu')
-
+    for _, v in pairs(Config.PetsLocations) do
+        if v.stablepetid == stablepetid then
+            lib.registerContext({
+                id = 'petshop_menu',
+                title = Lang:t('label.petshop'),
+                options = {
+                    {   title = 'Ver mascotas',
+                        description = 'pets view pets',
+                        icon = 'fa-solid fa-eye',
+                        event = 'tbrp_companions:client:menuinfo',
+                        args = { stablepetid = stablepetid },
+                        arrow = true
+                    },
+                    {   title = Lang:t('label.petshop_3'),
+                        icon = 'fa-solid fa-coins',
+                        event = 'tbrp_companions:client:MenuDel',
+                        args = { stablepetid = stablepetid },
+                        arrow = true
+                    },
+                    {   title = 'Comercio/Intercambio',
+                        icon = 'fa-solid fa-people-arrows',
+                        event = 'tbrp_companions:client:tradepet',
+                        arrow = true
+                    },
+                    {   title = "Vender animales capturados",
+                        icon = 'fas fa-shopping-basket',
+                        event = 'hdrp-companions:client:openSellMenu',
+                        args = { stablepetid },
+                    },
+                    {	title = Lang:t('label.petshop_2'),
+                        icon = 'fa-solid fa-box',
+                        event = 'tbrp_companions:client:OpenPetShop',
+                        arrow = true
+                    },
+                    {   title = 'Almacenar mascota',
+                        icon = 'fa-solid fa-warehouse',
+                        event = 'tbrp_companions:client:storepet',
+                        args = { stablepetid = stablepetid },
+                        arrow = true
+                    },
+                }
+            })
+            lib.showContext('petshop_menu')
+        end
+    end
 end)
 
 -------------------------
@@ -1114,16 +1116,16 @@ Citizen.CreateThread(function()
 end)
 
 -- save pet attributes 
-Citizen.CreateThread(function()
-    while true do
-        local sleep = 5000
-        local petdirt = Citizen.InvokeNative(0x147149F2E909323C, dogPed, 16, Citizen.ResultAsInteger())
-        if dogPed ~= 0 then
-            TriggerServerEvent('tbrp_companions:server:setpetAttributes', petdirt)
-        end
-        Wait(sleep)
-    end
-end)
+-- Citizen.CreateThread(function()
+--     while true do
+--         local sleep = 5000
+--         local petdirt = Citizen.InvokeNative(0x147149F2E909323C, dogPed, 16, Citizen.ResultAsInteger())
+--         if dogPed ~= 0 then
+--             TriggerServerEvent('tbrp_companions:server:setpetAttributes', petdirt)
+--         end
+--         Wait(sleep)
+--     end
+-- end)
 
 -----------------
 -- Pet menu Shop
@@ -1286,6 +1288,7 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
                         title = 'Animations',
                         icon = 'fa-solid fa-share',
                         onSelect = function()
+                            TriggerEvent('tbrp_companions:client:mypetsanimations', dogPed)
                         end,
                         arrow = true
                     }
@@ -1343,6 +1346,54 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
     end)
 end)
 
+local function AnimationPet(dict, name)
+	local waiting = 0
+	RequestAnimDict(dict)
+	while not HasAnimDictLoaded(dict) do
+		waiting = waiting + 100
+		Wait(100)
+		if waiting > 5000 then
+			RSGCore.Functions.Notify(Lang:t('error.brokeanim'), 'error', 3000)
+			break
+		end
+	end
+	TaskPlayAnim(dogPed, dict, name, 1.0, 8.0, -1, 0, 0, false, false, false)
+end
+
+local function petAnimation(pet, dict, dictname)
+	local coords = GetEntityCoords(pet)
+	ClearPedTasks(pet)
+	ClearPedSecondaryTask(pet)
+	AnimationPet(dict, dictname)
+	FreezeEntityPosition(pet, true)
+end
+
+RegisterNetEvent('tbrp_companions:client:mypetsanimations', function(dogPedmenu)
+	local options = {}
+    for k,v in ipairs(Config.Animations) do
+        options[#options + 1] = {
+            title = v.animname,
+            description = v.dict,
+            icon = 'fa-solid fa-box',
+            args = {
+				dict = v.dict,
+				name = v.dictname,
+            },
+            onSelect = function()
+                petAnimation(dogPedmenu, v.dict, v.dictname)
+			end,
+            arrow = true,
+        }
+	end
+    lib.registerContext({
+        id = 'show_mypetanimation_menu',
+        title = 'Pet Animations',
+        menu = 'show_mypetactions_menu',
+        position = 'top-right',
+        options = options
+    })
+    lib.showContext('show_mypetanimation_menu')
+end)
 
 ----------------------------
 ----------------------------
