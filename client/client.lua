@@ -142,18 +142,25 @@ end
 ------------------------------------
 -- flee
 ------------------------------------
+
 local function FleePet()
     TaskAnimalFlee(dogPed, cache.ped, -1)
     Wait(10000)
-	if Config.StoreFleedPet then
-		SetClosestStablePetsLocation()
-		TriggerServerEvent('tbrp_companions:server:fleeStorePet', closestStablePets)
-	end
+    TriggerEvent("tbrp_companions:client:FleePet")
     DeleteEntity(dogPed)
     dogPed = 0
     DogCalled = false
 end
 
+local function FleePetStore()
+    TaskAnimalFlee(dogPed, cache.ped, -1)
+    Wait(10000)
+	SetClosestStablePetsLocation()
+	TriggerServerEvent('tbrp_companions:server:fleeStorePet', closestStablePets)
+    DeleteEntity(dogPed)
+    dogPed = 0
+    DogCalled = false
+end
 ------------------------------------
 -- exports
 ------------------------------------
@@ -177,7 +184,11 @@ end)
 ------------
 
 RegisterCommand("fleepet", function() --  COMMAND
-	FleePet()
+    if Config.StoreFleedPet then
+		FleePetStore()
+    else
+        FleePet()
+	end
 	Wait(3000) -- Spam protect
 end, false)
 
@@ -296,7 +307,6 @@ RegisterNetEvent('tbrp_companions:client:openpetshop', function(stablepetid)
                     {   title = Lang:t('label.petshop_3'),
                         icon = 'fa-solid fa-coins',
                         event = 'tbrp_companions:client:MenuDel',
-                        args = { stablepetid = stablepetid },
                         arrow = true
                     },
                     {   title = 'Comercio/Intercambio',
@@ -777,7 +787,7 @@ RegisterNetEvent('tbrp_companions:client:storepet', function(data)
     if (dogPed ~= 0) then
         TriggerServerEvent('tbrp_companions:server:SetPetsUnActive', PetId, data.stablepetid)
         RSGCore.Functions.Notify('success.storing_pet', 'success', 7500)
-        FleePet()
+        FleePetStore()
         DogCalled = false
     else
         RSGCore.Functions.Notify('no_pet_out', 'error', 7500)
@@ -789,7 +799,11 @@ RegisterNetEvent("tbrp_companions:client:tradepet", function(data)
     RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data, newnames)
         if (dogPed ~= 0) then
             TradePet()
-            FleePet()
+            if Config.StoreFleedPet then
+                FleePetStore()
+            else
+                FleePet()
+            end
             DogCalled = false
         else
             RSGCore.Functions.Notify('error.no_pet_out', 'error', 7500)
@@ -849,7 +863,7 @@ RegisterNetEvent('tbrp_companions:client:MenuDel', function()
                 description = 'Gender:' ..pets.gender ..' Xp: ' .. pets.dogxp .. ' Active: ' .. pets.active,
                 icon = 'fa-solid fa-paw',
                 serverEvent = 'tbrp_companions:server:deletepet',
-                args = { petid = pets.id },
+                args = { petid = pets.id, name = pets.name },
                 arrow = true
             }
         end
@@ -878,7 +892,7 @@ Citizen.CreateThread(function() -- call
 						local coords = GetEntityCoords(PlayerPedId())
 						local petCoords = GetEntityCoords(dogPed)
 						local distance = #(coords - petCoords)
-                        
+
                         TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'CALLING_WHISTLE_01', 1)
 
 						if not DogCalled and (distance > 100.0) then
@@ -907,7 +921,11 @@ Citizen.CreateThread(function() -- call
 
                         if eventDataStruct:GetInt32(0) == 33 then
                             if dogPed == eventDataStruct:GetInt32(16) then
-                                FleePet()
+                                if Config.StoreFleedPet then
+                                    FleePetStore()
+                                else
+                                    FleePet()
+                                end
                             end
                         end
                     end
@@ -1202,7 +1220,6 @@ RegisterNetEvent('tbrp_companions:client:mypets', function()
                         progress = results.live,
                         colorScheme = liveColorScheme,
                         icon = 'fa-solid fa-heart',
-                        arrow = true
                     }
                     options[#options + 1] = {
                         title = 'Felicidad: '..results.happiness,
@@ -1257,7 +1274,7 @@ RegisterNetEvent('tbrp_companions:client:mypets', function()
     end)
 end)
 
-RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
+RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPedmenu)
     RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetAllPets', function(results)
         if results ~= nil then
             local options = {}
@@ -1273,7 +1290,7 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
                         title = 'Follow',
                         icon = 'fa-solid fa-share',
                         onSelect = function()
-                            followOwner(dogPed, PlayerPedId())
+                            followOwner(dogPedmenu, PlayerPedId())
                         end,
                         arrow = true
                     }
@@ -1295,7 +1312,7 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
                         title = 'Animations',
                         icon = 'fa-solid fa-share',
                         onSelect = function()
-                            TriggerEvent('tbrp_companions:client:mypetsanimations', dogPed)
+                            TriggerEvent('tbrp_companions:client:mypetsanimations', dogPedmenu)
                         end,
                         arrow = true
                     }
@@ -1310,7 +1327,7 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
                         title = 'Stay',
                         icon = 'fa-solid fa-location-dot',
                         onSelect = function()
-                            petStay(dogPed)
+                            petStay(dogPedmenu)
                         end,
                         arrow = true
                     }
@@ -1332,7 +1349,11 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
                         title = 'Flee',
                         icon = 'fa-solid fa-warehouse',
                         onSelect = function()
-                            FleePet()
+                            if Config.StoreFleedPet then
+                                FleePetStore()
+                            else
+                                FleePet()
+                            end
                         end,
                         arrow = true
                     }
@@ -1353,7 +1374,21 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPed)
     end)
 end)
 
-local function AnimationPet(dict, name)
+---------------------------
+-- ANIMATIONS MENU
+---------------------------
+local playanim = false
+local petanimdict = nil
+local petanimdictname = nil
+local petanimname = nil
+
+local function StopAnimation(pet, animdict, animdictname)
+	if Config.Debug then print(animdict) print(animdictname) end
+	TaskPlayAnim(pet, animdict, animdictname, 1.0, 1.0, -1, 0, 1.0, false, false, false)
+	FreezeEntityPosition(pet, false)
+end
+
+local function AnimationPet(pet, dict, name)
 	local waiting = 0
 	RequestAnimDict(dict)
 	while not HasAnimDictLoaded(dict) do
@@ -1364,32 +1399,47 @@ local function AnimationPet(dict, name)
 			break
 		end
 	end
-	TaskPlayAnim(dogPed, dict, name, 1.0, 8.0, -1, 0, 0, false, false, false)
+	TaskPlayAnim(pet, dict, name, 1.0, 1.0, -1, 1, 0, false, false, false)
+    playanim = true
 end
 
 local function petAnimation(pet, dict, dictname)
 	local coords = GetEntityCoords(pet)
 	ClearPedTasks(pet)
 	ClearPedSecondaryTask(pet)
-	AnimationPet(dict, dictname)
+	AnimationPet(pet, dict, dictname)
 	FreezeEntityPosition(pet, true)
 end
 
 RegisterNetEvent('tbrp_companions:client:mypetsanimations', function(dogPedmenu)
 	local options = {}
+    options[#options + 1] = {
+        title = 'STOP ANIM',
+        -- description = 'Current: ' .. petanimname,
+        icon = 'fa-solid fa-pause',
+        args = {
+        },
+        onSelect = function()
+        StopAnimation(dogPedmenu, petanimdict, petanimdictname)
+            petanimdict = nil
+            petanimdictname = nil
+            petanimname = nil
+        lib.showContext('show_mypetanimation_menu')
+        end,
+    }
     for k,v in ipairs(Config.Animations) do
         options[#options + 1] = {
             title = v.animname,
-            description = v.dict,
+            -- description = v.dict,
             icon = 'fa-solid fa-box',
-            args = {
-				dict = v.dict,
-				name = v.dictname,
-            },
             onSelect = function()
                 petAnimation(dogPedmenu, v.dict, v.dictname)
+                petanimdict = v.dict
+                petanimdictname = v.dictname
+                petanimname = v.animname
+                lib.showContext('show_mypetanimation_menu')
 			end,
-            arrow = true,
+            -- arrow = true,
         }
 	end
     lib.registerContext({

@@ -80,7 +80,7 @@ local fishtrap = {
 }
 
 ---------------------------------
--- shop/sell/stablepets locations
+-- sell/stablepets locations
 ---------------------------------
 Config.PetsLocations = {
     {
@@ -153,7 +153,7 @@ Config.AnimalDrink       = 'drink_dog'
 Config.HungerIncrease    = math.random(25, 50) -- amount increased when drink_dog
 Config.ThirstIncrease    = math.random(25, 50) -- amount increased when feed_dog
 Config.DegradeDirt       = math.random(3, 5)
-Config.HappinessIncrease    = math.random(8, 12)
+Config.HappinessIncrease = math.random(8, 12)
 
 Config.XpPerFeed         = math.random(10, 20) -- The amount of XP every feed gives
 Config.XpPerClean        = math.random(1, 5) -- The amount of XP every feed gives
@@ -205,33 +205,6 @@ Config.TrackOnly = {  -- <<Only have one of these 3 be true or all 3 false if yo
     Animals  = false, -- The track command works on animal types, not players/peds
     NPC      = false, -- If this is enabled, you can track NPC peds and animals but not people
 }
-
----------------------------------
--- Pets carry animals
---------------------
-Config.Animals = { --These are the animals the dogs will retrieve	 --Hash ID must be the ID of the table
-	[-1003616053]   = {["name"] = "Duck", },
-    [1459778951]    = {["name"] = "Eagle", },
-	[-164963696]    = {["name"] = "Herring Seagull",},
-	[-1104697660]   = {["name"] = "Vulture",},
-	[-466054788]    = {["name"] = "Wild Turkey",},
-    [-2011226991]   = {["name"] = "Wild Turkey",},
-    [-166054593]    = {["name"] = "Wild Turkey",},
-	[-1076508705]   = {["name"] = "Roseate Spoonbill",},
-	[-466687768]    = {["name"] = "Red-Footed Booby",},
-	[-575340245]    = {["name"] = "Wester Raven",},
-	[1416324601]    = {["name"] = "Ring-Necked Pheasant",},
-	[1265966684]    = {["name"] = "American White Pelican",},
-	[-1797450568]   = {["name"] = "Blue And Yellow Macaw",},
-	[-2073130256]   = {["name"] = "Double-Crested Cormorant",},
-	[-564099192]    = {["name"] = "Whooping Crane",},
-	[723190474]     = {["name"] = "Canada Goose",},
-	[-2145890973]   = {["name"] = "Ferruinous Hawk",},
-	[1095117488]    = {["name"] = "Great Blue Heron",},
-	[386506078]     = {["name"] = "Common Loon",},
-	[-861544272]    = {["name"] = "Great Horned Owl",},
-}
-
 ---------------------------------
 -- pet health/stamina/ability/speed/acceleration levels
 ---------------------------------
@@ -260,6 +233,43 @@ Config.PetFeed = {
 -- pet bonding settings
 ---------------------------------
 Config.MaxBondingLevel = 5000
+
+
+-------------------------
+-- EXTRA Webhooks / RANKING
+-----------------------
+Config.Webhooks = {
+    ["wildpet"] = "https://discord.com/api/webhooks/1248940878056394823/f_lq_PeslXPN0_k4ooRB0UJJNEdgpqCz04y911SfpOzfeciEh_rvKEt6TVxHishQbTa7",
+    ["petinfo"] = "https://discord.com/api/webhooks/1263651756626415646/XtPT_a4HIhgEuwtmaRvYvapJXW8zNAkgnn3cShzjOr-649MLLQLFRwy6vd67M_MpqCtS",
+    ["tarder"] = "https://discord.com/api/webhooks/1248299675400929290/sHnbVwQMuInW1YqyA2U_2KJKKKZCbostdPjAssvX8nl2DTZ_Hz5y8DEJZwGSTpquEcvU",
+    ["tarderPlayer"] = "https://discord.com/api/webhooks/1248983616734888038/sfrwUhRghpgan2xHsklh8MarNKvFX0wRrFehr4ixWu8gEXoIBV373Ar--wsdaXXjoLUD",
+}
+
+---------------------------------
+-- Pets carry animals
+--------------------
+Config.Animals = { --These are the animals the dogs will retrieve	 --Hash ID must be the ID of the table
+	[-1003616053]   = {["name"] = "Duck", },
+    [1459778951]    = {["name"] = "Eagle", },
+	[-164963696]    = {["name"] = "Herring Seagull",},
+	[-1104697660]   = {["name"] = "Vulture",},
+	[-466054788]    = {["name"] = "Wild Turkey",},
+    [-2011226991]   = {["name"] = "Wild Turkey",},
+    [-166054593]    = {["name"] = "Wild Turkey",},
+	[-1076508705]   = {["name"] = "Roseate Spoonbill",},
+	[-466687768]    = {["name"] = "Red-Footed Booby",},
+	[-575340245]    = {["name"] = "Wester Raven",},
+	[1416324601]    = {["name"] = "Ring-Necked Pheasant",},
+	[1265966684]    = {["name"] = "American White Pelican",},
+	[-1797450568]   = {["name"] = "Blue And Yellow Macaw",},
+	[-2073130256]   = {["name"] = "Double-Crested Cormorant",},
+	[-564099192]    = {["name"] = "Whooping Crane",},
+	[723190474]     = {["name"] = "Canada Goose",},
+	[-2145890973]   = {["name"] = "Ferruinous Hawk",},
+	[1095117488]    = {["name"] = "Great Blue Heron",},
+	[386506078]     = {["name"] = "Common Loon",},
+	[-861544272]    = {["name"] = "Great Horned Owl",},
+}
 
 ---------------------------------
 -- pet settings -- client/pets.lua
@@ -340,64 +350,27 @@ Config.PetBuySpawn = {
 }
 
 -------------------------
--- EXTRA Webhooks / RANKING
------------------------
-
-Config.Webhooks = {
-    ["wildpet"] = "https://discord.com/api/webhooks/1248940878056394823/f_lq_PeslXPN0_k4ooRB0UJJNEdgpqCz04y911SfpOzfeciEh_rvKEt6TVxHishQbTa7",
-    ["petinfo"] = "https://discord.com/api/webhooks/1263651756626415646/XtPT_a4HIhgEuwtmaRvYvapJXW8zNAkgnn3cShzjOr-649MLLQLFRwy6vd67M_MpqCtS",
-    ["tarder"] = "https://discord.com/api/webhooks/1248299675400929290/sHnbVwQMuInW1YqyA2U_2KJKKKZCbostdPjAssvX8nl2DTZ_Hz5y8DEJZwGSTpquEcvU",
-    ["tarderPlayer"] = "https://discord.com/api/webhooks/1248983616734888038/sfrwUhRghpgan2xHsklh8MarNKvFX0wRrFehr4ixWu8gEXoIBV373Ar--wsdaXXjoLUD",
-}
-
--------------------------
 -- EXTRA ANIMATIONS
 -----------------------
-
 Config.Animations = {
 	{
-        animname = 	'POOPING',
-        dict = "amb_creature_mammal@world_dog_pooping@base",
-        dictname = "base",
+        animname = 	'ROLL GROUND',
+        dict = "amb_creature_mammal@world_dog_roll_ground@idle",
+        dictname = "idle_c",
 	},
-    -- sit
 	{
         animname = 	'BEGGING',
-        dict = "amb_creature_mammal@world_dog_begging@base",
-        dictname = "base",
-	},
-	{
-        animname = 	'HOWLING_SITTING',
-        dict = "amb_creature_mammal@world_dog_howling_sitting@base",
-        dictname = "base",
-	},
-    -- sleep
-	{
-        animname = 	'SLEEPING',
-        dict = "amb_creature_mammal@world_dog_sleeping@base",
-        dictname = "base",
+        dict = "amb_creature_mammal@world_dog_begging@idle",
+        dictname = "idle_a",
 	},
 	{
         animname = 	'RESTING',
         dict = "amb_creature_mammal@world_dog_resting@base",
         dictname = "base",
 	},
-    -- 
 	{
-        animname = 	'INJURED_ON_GROUND',
-        dict = "amb_creature_mammal@world_dog_injured_on_ground@base",
-        dictname = "base",
-	},
-	{
-        animname = 	'ROLL_GROUND',
-        dict = "amb_creature_mammal@world_dog_roll_ground@base",
-        dictname = "base",
-	},
-
-    -- noise
-	{
-        animname = 	'MARK_TERRITORY_A',
-        dict = "amb_creature_mammal@world_dog_mark_territory_a@base",
+        animname = 	'SLEEPING',
+        dict = "amb_creature_mammal@world_dog_sleeping@base",
         dictname = "base",
 	},
 	{
@@ -406,55 +379,53 @@ Config.Animations = {
         dictname = "base",
 	},
 	{
-        animname = 	'HOWLING',
-        dict = "amb_creature_mammal@world_dog_howling@base",
-        dictname = "base",
-	},
-	{
-        animname = 	'SNIFFING_GROUND',
-        dict = "amb_creature_mammal@world_dog_sniffing_ground@base",
-        dictname = "base",
-	},
-	{
-        animname = 	'SNIFFING_GROUND_WANDER',
-        dict = "amb_creature_mammal@world_dog_sniffing_ground_wander@wander_a@base",
-        dictname = "base",
-	},
-    --talk
-	{
-        animname = 	'BARKING_VICIOUS',
-        dict = "amb_creature_mammal@world_dog_barking_vicious@base",
-        dictname = "base",
-	},
-	{
-        animname = 	'BARK_GROWL',
-        dict = "amb_creature_mammal@world_dog_bark_growl@base",
-        dictname = "base",
-	},
-	{
-        animname = 	'BARKING_GROUND',
-        dict = "amb_creature_mammal@world_dog_barking_ground@base",
-        dictname = "base",
-	},
-	{
-        animname = 	'BARKING_UP',
+        animname = 	'BARKING UP',
         dict = "amb_creature_mammal@world_dog_barking_up@base",
         dictname = "base",
 	},
 	{
-        animname = 	'GUARD_GROWL',
+        animname = 	'BARKING VICIOUS',
+        dict = "amb_creature_mammal@world_dog_barking_vicious@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'BARK GROWL',
+        dict = "amb_creature_mammal@world_dog_bark_growl@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'GUARD GROWL',
         dict = "amb_creature_mammal@world_dog_guard_growl@base",
         dictname = "base",
 	},
 	{
-        animname = 	'STUNNED_ON_GROUND',
-        dict = "amb_creature_mammal@world_dog_stunned_on_ground@base",
+        animname = 	'BARKING GROUND',
+        dict = "amb_creature_mammal@world_dog_barking_ground@base",
         dictname = "base",
 	},
-    -- wagon
 	{
-        animname = 	'WAGON',
-        dict = "amb_creature_mammal@world_dog_wagon@base",
+        animname = 	'HOWLING SITTING',
+        dict = "amb_creature_mammal@world_dog_howling_sitting@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'SNIFFING GROUND',
+        dict = "amb_creature_mammal@world_dog_sniffing_ground@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'POOPING',
+        dict = "amb_creature_mammal@world_dog_pooping@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'INJURED ON GROUND',
+        dict = "amb_creature_mammal@world_dog_injured_on_ground@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'STUNNED ON GROUND',
+        dict = "amb_creature_mammal@world_dog_stunned_on_ground@base",
         dictname = "base",
 	},
 }
