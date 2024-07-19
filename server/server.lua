@@ -341,9 +341,12 @@ RegisterServerEvent('tbrp_companions:server:brushpet', function(item)
 
     if Player.Functions.GetItemByName(item) then
         TriggerClientEvent("tbrp_companions:client:playerbrushpet", src, item)
-        local dirt = 0.0
-        MySQL.update('UPDATE tbrp_companions SET dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?', { dirt, happinesspet + Config.HappinessIncrease, xppet + Config.XpPerClean, activepet, Player.PlayerData.citizenid })
-        -- TriggerClientEvent('tbrp_companions:client:UpdateDogFed', src, xppet + Config.XpPerClean)
+        local happiness = happinesspet + Config.HappinessIncrease
+        if happiness >= 100 then
+            happiness = 100
+            local dirt = 0.0
+            MySQL.update("UPDATE tbrp_companions SET dirt = ?, happiness = ?, dogxp = ?  WHERE id = ? AND citizenid = ?", { dirt, happiness, xppet + Config.XpPerClean, activepet, Player.PlayerData.citizenid})
+        end
     else
         TriggerClientEvent('RSGCore:Notify', src, "You don't have "..item, 'error')
     end
@@ -366,21 +369,51 @@ RegisterServerEvent('tbrp_companions:server:eatpet', function(item)
 			Player.Functions.RemoveItem(Config.AnimalDrink, 1)
 			TriggerClientEvent('inventory:client:ItemBox', src, RSGCore.Shared.Items[Config.AnimalDrink], "remove")
 
-            if thirstpet >= 100 then
-                thirstpet = 100
-                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dirt = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirstpet, dirtpet + Config.DegradeDirt, xppet, activepet, Player.PlayerData.citizenid})
+            local thirst = thirstpet + Config.ThirstIncrease
+            if thirst >= 100 then
+                thirst = 100
+                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirst, xppet + Config.XpPerDrink, activepet, Player.PlayerData.citizenid})
             else
-                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dirt = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirstpet + Config.ThirstIncrease, dirtpet + Config.DegradeDirt, xppet + Config.XpPerDrink, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET thirst = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { thirst, xppet + Config.XpPerDrink, activepet, Player.PlayerData.citizenid})
+            end
+            local happiness = happinesspet + Config.HappinessIncrease
+            if happiness >= 100 then
+                happiness = 100
+                MySQL.update("UPDATE tbrp_companions SET happiness = ? WHERE id = ? AND citizenid = ?", { happiness, activepet, Player.PlayerData.citizenid})
+            else
+                MySQL.update("UPDATE tbrp_companions SET happiness = ? WHERE id = ? AND citizenid = ?", { happiness, activepet, Player.PlayerData.citizenid})
+            end
+            local dirt = dirtpet + Config.DegradeDirt
+            if dirt >= 100 then
+                dirt = 100
+                MySQL.update("UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?", { dirt, activepet, Player.PlayerData.citizenid})
+            else
+                MySQL.update("UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?", { dirt, activepet, Player.PlayerData.citizenid})
             end
         elseif item == Config.AnimalFood then
 			Player.Functions.RemoveItem(Config.AnimalFood, 1)
 			TriggerClientEvent('inventory:client:ItemBox', src, RSGCore.Shared.Items[Config.AnimalFood], "remove")
 
-            if hungerpet >= 100 then
-                hungerpet = 100
-                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hungerpet, dirtpet + Config.DegradeDirt, happinesspet + Config.HappinessIncrease, xppet, activepet, Player.PlayerData.citizenid})
+            local hunger = hungerpet + Config.HungerIncrease
+            if hunger >= 100 then
+                hunger = 100
+                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hunger, xppet + Config.XpPerFeed, activepet, Player.PlayerData.citizenid})
             else
-                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dirt = ?, happiness = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hungerpet + Config.HungerIncrease, dirtpet + Config.DegradeDirt, happinesspet + Config.HappinessIncrease, xppet + Config.XpPerFeed, activepet, Player.PlayerData.citizenid})
+                MySQL.update("UPDATE tbrp_companions SET hunger = ?, dogxp = ? WHERE id = ? AND citizenid = ?", { hunger, xppet + Config.XpPerFeed, activepet, Player.PlayerData.citizenid})
+            end
+            local happiness = happinesspet + Config.HappinessIncrease
+            if happiness >= 100 then
+                happiness = 100
+                MySQL.update("UPDATE tbrp_companions SET happiness = ? WHERE id = ? AND citizenid = ?", { happiness, activepet, Player.PlayerData.citizenid})
+            else
+                MySQL.update("UPDATE tbrp_companions SET happiness = ? WHERE id = ? AND citizenid = ?", { happiness, activepet, Player.PlayerData.citizenid})
+            end
+            local dirt = dirtpet + Config.DegradeDirt
+            if dirt >= 100 then
+                dirt = 100
+                MySQL.update("UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?", { dirt, activepet, Player.PlayerData.citizenid})
+            else
+                MySQL.update("UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?", { dirt, activepet, Player.PlayerData.citizenid})
             end
         end
     else
@@ -388,20 +421,32 @@ RegisterServerEvent('tbrp_companions:server:eatpet', function(item)
     end
 end)
 
-RegisterServerEvent('tbrp_companions:server:setpetAttributes', function(dirt)
+RegisterServerEvent('tbrp_companions:server:setpetAttributes', function(number)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
     local dirtpet = MySQL.scalar.await('SELECT dirt FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-    MySQL.update('UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?', { dirtpet + dirt, activepet, Player.PlayerData.citizenid })
+    local dirt = dirtpet + number
+    if dirt >= 100 then
+        dirt = 100
+        MySQL.update("UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?", { dirt, activepet, Player.PlayerData.citizenid})
+    else
+        MySQL.update("UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?", { dirt, activepet, Player.PlayerData.citizenid})
+    end
 end)
 
-RegisterServerEvent('tbrp_companions:server:setpetAttributesGrowth', function(growth)
+RegisterServerEvent('tbrp_companions:server:setpetAttributesGrowth', function(number)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
     local growthpet = MySQL.scalar.await('SELECT growth FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-    MySQL.update('UPDATE tbrp_companions SET growth = ? WHERE id = ? AND citizenid = ?', { growthpet + growth, activepet, Player.PlayerData.citizenid })
+    local growth = growthpet + number
+    if growth >= 100 then
+        growth = 100
+        MySQL.update("UPDATE tbrp_companions SET growth = ? WHERE id = ? AND citizenid = ?", { growth, activepet, Player.PlayerData.citizenid})
+    else
+        MySQL.update("UPDATE tbrp_companions SET growth = ? WHERE id = ? AND citizenid = ?", { growth, activepet, Player.PlayerData.citizenid})
+    end
 end)
 
 ------------------------------------------
@@ -433,10 +478,8 @@ lib.cron.new(Config.CronupkeepJob, function ()
         local currentTime = os.time()
         local timeDifference = currentTime - result[i].born
         local daysPassed = math.floor(timeDifference / (24 * 60 * 60))
-        local active = result[i].active
         local updated = false
 
-        if active == true then
             if growth < 100 then
                 if live > 0 then
                     thirst = thirst - 1
@@ -643,7 +686,7 @@ lib.cron.new(Config.CronupkeepJob, function ()
                     end
                 end
             end
-        end
+
     end
 
     ::continue::

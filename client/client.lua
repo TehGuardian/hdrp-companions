@@ -175,6 +175,7 @@ end)
 ------------
 -- commands
 ------------
+
 RegisterCommand("fleepet", function() --  COMMAND
 	FleePet()
 	Wait(3000) -- Spam protect
@@ -502,6 +503,7 @@ local function SpawnPet()
                 -- set pet xp and gender
                 dogXP = data.dogxp
                 doggender = data.gender
+                -- doggrowth = data.growth
 
                 -- set pet health/stamina/ability/speed/acceleration (increased by pet training)
                 local hValue = 0
@@ -596,20 +598,25 @@ local function SpawnPet()
 				SetPedAsGroupMember(dogPed, GetPedGroupIndex(PlayerPedId()))
 
 				if Config.RaiseAnimal then
-					local halfGrowth = Config.FullGrownXp / 2
+					local halfGrowth1 = Config.FullGrownXp * 3 / 4
+					local halfGrowth2 = Config.FullGrownXp / 2
+					local halfGrowth4 = Config.FullGrownXp / 4
+
 					if dogXP >= Config.FullGrownXp then
 						SetPedScale(dogPed, 1.0) --Use this for the XP system with pets
-						-- AddStayPrompts(dogPed)
-						-- AddHuntModePrompts(dogPed)
-					elseif dogXP >= halfGrowth then
+					elseif dogXP >= halfGrowth1 then
+						SetPedScale(dogPed, 0.9)
+					elseif dogXP >= halfGrowth2 then
 						SetPedScale(dogPed, 0.8)
-						-- AddStayPrompts(dogPed)
+					elseif dogXP >= halfGrowth4 then
+						SetPedScale(dogPed, 0.7)
 					else
 						SetPedScale(dogPed, 0.6)
-					end
+                    end
 				else
 					dogXP = Config.FullGrownXp
-					-- AddStayPrompts(dogPed)
+                    -- AddStayPrompts(dogPed)
+                    -- AddHuntModePrompts(dogPed)
 				end
 
 				while (GetScriptTaskStatus(dogPed, 0x4924437d) ~= 8) do

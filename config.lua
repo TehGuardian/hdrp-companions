@@ -3,7 +3,7 @@
 Config = {}
 
 Config.Debug = true
-Config.Img = "rsg-inventory/html/images/"
+Config.img = "rsg-inventory/html/images/"
 
 ---------------------------------
 -- SHOP SETTINGS
@@ -179,11 +179,11 @@ Config.Prompt = {
 }
 
 Config.NoFear           = true --Set this to true if you are using Bears/Wolves as pets so that your horses won't be in constant fear and wont get stuck on the eating dead body animation.
+Config.RaiseAnimal      = true -- If this is enabled, you will have to feed your animal for it to gain XP and grow. Only full grown pets can use commands (halfway you get the Stay command)
+Config.FullGrownXp      = 1000 -- The amount of XP that it is fully grown. At the halfway point the pet will grow to 50% of max size.
 
 -- Config.DefensiveMode    = true --If set to true, pets will become hostile to anything you are in combat with
 -- Config.SearchRadius     = 50.0 -- How far the pet will search for a hunted animal. Always a float value i.e 50.0
--- Config.RaiseAnimal      = true -- If this is enabled, you will have to feed your animal for it to gain XP and grow. Only full grown pets can use commands (halfway you get the Stay command)
--- Config.FullGrownXp      = 1000 -- The amount of XP that it is fully grown. At the halfway point the pet will grow to 50% of max size.
 -- Config.GrowthIncrease    = math.random(10, 20)
 -- Config.GrowthTimer       = 60000 -- 60000 = every 1 min / testing 1000 = 1 seconds
 
@@ -356,118 +356,105 @@ Config.Webhooks = {
 
 Config.Animations = {
 	{
-        animname = 	'DRINK_GROUND',
-        dict = "amb_creature_mammal@world_dog_drink_ground@base@face",
+        animname = 	'POOPING',
+        dict = "amb_creature_mammal@world_dog_pooping@base",
         dictname = "base",
 	},
+    -- sit
+	{
+        animname = 	'BEGGING',
+        dict = "amb_creature_mammal@world_dog_begging@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'HOWLING_SITTING',
+        dict = "amb_creature_mammal@world_dog_howling_sitting@base",
+        dictname = "base",
+	},
+    -- sleep
+	{
+        animname = 	'SLEEPING',
+        dict = "amb_creature_mammal@world_dog_sleeping@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'RESTING',
+        dict = "amb_creature_mammal@world_dog_resting@base",
+        dictname = "base",
+	},
+    -- 
 	{
         animname = 	'INJURED_ON_GROUND',
         dict = "amb_creature_mammal@world_dog_injured_on_ground@base",
         dictname = "base",
 	},
-	{	
+	{
+        animname = 	'ROLL_GROUND',
+        dict = "amb_creature_mammal@world_dog_roll_ground@base",
+        dictname = "base",
+	},
+
+    -- noise
+	{
         animname = 	'MARK_TERRITORY_A',
         dict = "amb_creature_mammal@world_dog_mark_territory_a@base",
         dictname = "base",
 	},
-	{	
-        animname = 	'BEGGING',
-        dict = "amb_creature_mammal@world_dog_begging@base",
-        dictname = "base",
-	},
-	{	
-        animname = 	'SLEEPING',
-        dict = "amb_creature_mammal@world_dog_sleeping@base",
-        dictname = "base",
-	},
-	{	
+	{
         animname = 	'DIGGING',
         dict = "amb_creature_mammal@world_dog_digging@base",
         dictname = "base",
 	},
-	{	
-        animname = 	'BARKING_VICIOUS',
-        dict = "amb_creature_mammal@world_dog_barking_vicious@base",
-        dictname = "base",
-	},
-	{	
+	{
         animname = 	'HOWLING',
         dict = "amb_creature_mammal@world_dog_howling@base",
         dictname = "base",
 	},
-	{	
-        animname = 	'BARK_GROWL',
-        dict = "amb_creature_mammal@world_dog_bark_growl@base",
-        dictname = "base",
-	},
-	{	
-        animname = 	'BARKING_GROUND',
-        dict = "amb_creature_mammal@world_dog_barking_ground@base",
-        dictname = "base",
-	},
-	{	
-        animname = 	'INJURED_ON_GROUND',
-        dict = "amb_creature_mammal@world_dog_injured_on_ground@death",
-        dictname = "death",
-	},
-	{	
-        animname = 	'HOWLING_SITTING',
-        dict = "amb_creature_mammal@world_dog_howling_sitting@base",
-        dictname = "base",
-	},
-	{	
-        animname = 	'BARKING_UP',
-        dict = "amb_creature_mammal@world_dog_barking_up@base",
-        dictname = "base",
-	},
-	{	
-        animname = 	'SITTING',
-        dict = "amb_creature_mammal@world_dog_sitting@base",
-        dictname = "base",
-	},
-	{	
+	{
         animname = 	'SNIFFING_GROUND',
         dict = "amb_creature_mammal@world_dog_sniffing_ground@base",
         dictname = "base",
 	},
-	{	
+	{
         animname = 	'SNIFFING_GROUND_WANDER',
         dict = "amb_creature_mammal@world_dog_sniffing_ground_wander@wander_a@base",
         dictname = "base",
 	},
-	{	
-        animname = 	'RESTING',
-        dict = "amb_creature_mammal@world_dog_resting@base",
+    --talk
+	{
+        animname = 	'BARKING_VICIOUS',
+        dict = "amb_creature_mammal@world_dog_barking_vicious@base",
         dictname = "base",
 	},
-	{	
-        animname = 	'WAGON',
-        dict = "amb_creature_mammal@world_dog_wagon@base",
+	{
+        animname = 	'BARK_GROWL',
+        dict = "amb_creature_mammal@world_dog_bark_growl@base",
         dictname = "base",
 	},
-	{	
+	{
+        animname = 	'BARKING_GROUND',
+        dict = "amb_creature_mammal@world_dog_barking_ground@base",
+        dictname = "base",
+	},
+	{
+        animname = 	'BARKING_UP',
+        dict = "amb_creature_mammal@world_dog_barking_up@base",
+        dictname = "base",
+	},
+	{
         animname = 	'GUARD_GROWL',
         dict = "amb_creature_mammal@world_dog_guard_growl@base",
-        dictname = "base",
-	},
-	{	
-        animname = 	'POOPING',
-        dict = "amb_creature_mammal@world_dog_pooping@base",
-        dictname = "base",
-	},
-	{	
-        animname = 	'EATING_GROUND',
-        dict = "amb_creature_mammal@world_dog_eating_ground@base",
-        dictname = "base",
-	},
-	{	
-        animname = 	'ROLL_GROUND',
-        dict = "amb_creature_mammal@world_dog_roll_ground@base",
         dictname = "base",
 	},
 	{
         animname = 	'STUNNED_ON_GROUND',
         dict = "amb_creature_mammal@world_dog_stunned_on_ground@base",
+        dictname = "base",
+	},
+    -- wagon
+	{
+        animname = 	'WAGON',
+        dict = "amb_creature_mammal@world_dog_wagon@base",
         dictname = "base",
 	},
 }
