@@ -31,14 +31,14 @@ end
 RSGCore.Functions.CreateUseableItem('feed_dog', function(source, item)
     local Player = RSGCore.Functions.GetPlayer(source)
     if Player.Functions.RemoveItem(item.name, 1, item.slot) then
-        TriggerClientEvent("tbrp_companions:client:playerfeedpet", source, item.name)
+        TriggerClientEvent("hdrp-companions:client:playerfeedpet", source, item.name)
     end
 end)
 
 RSGCore.Functions.CreateUseableItem('drink_dog', function(source, item)
     local Player = RSGCore.Functions.GetPlayer(source)
     if Player.Functions.RemoveItem(item.name, 1, item.slot) then
-        TriggerClientEvent("tbrp_companions:client:playerfeedpet", source, item.name)
+        TriggerClientEvent("hdrp-companions:client:playerfeedpet", source, item.name)
     end
 end)
 
@@ -58,7 +58,7 @@ RSGCore.Functions.CreateUseableItem("petreviver", function(source, item)
         return
     end
 
-    TriggerClientEvent("tbrp_companions:client:revivepet", src, item, result[1])
+    TriggerClientEvent("hdrp-companions:client:revivepet", src, item, result[1])
 end)
 
 ----------------
@@ -67,15 +67,15 @@ end)
 
 RSGCore.Commands.Add("findpet", "find where your pets are stored", {}, false, function(source)
     local src = source
-    TriggerClientEvent('tbrp_companions:client:getpetlocation', src)
+    TriggerClientEvent('hdrp-companions:client:getpetlocation', src)
 end)
 
 RSGCore.Commands.Add("mypets", "Your pets are stored", {}, false, function(source)
     local src = source
-    TriggerClientEvent('tbrp_companions:client:mypets', src)
+    TriggerClientEvent('hdrp-companions:client:mypets', src)
 end)
 
-RSGCore.Functions.CreateCallback('tbrp_companions:server:GetAllPets', function(source, cb)
+RSGCore.Functions.CreateCallback('hdrp-companions:server:GetAllPets', function(source, cb)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local pets = MySQL.query.await('SELECT * FROM tbrp_companions WHERE citizenid= ?', { Player.PlayerData.citizenid })
@@ -86,7 +86,7 @@ RSGCore.Functions.CreateCallback('tbrp_companions:server:GetAllPets', function(s
     end
 end)
 
-RegisterServerEvent('tbrp_companions:server:revivepet', function(item)
+RegisterServerEvent('hdrp-companions:server:revivepet', function(item)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
 
@@ -98,7 +98,7 @@ end)
 ------------------------
 -- BUY PETS WITH CLIENT/PETS.LUA
 ------------------------
-RegisterServerEvent('tbrp_companions:server:BuyPet', function(price, model, stablepet, dogname, gender)
+RegisterServerEvent('hdrp-companions:server:BuyPet', function(price, model, stablepet, dogname, gender)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
 
@@ -169,7 +169,7 @@ end)
 ------------------------
 -- BUY PETS
 ------------------------
-RegisterNetEvent("tbrp_companions:server:TradePet", function(playerId, petId, source)
+RegisterNetEvent("hdrp-companions:server:TradePet", function(playerId, petId, source)
     local src = source
     local Player2 = RSGCore.Functions.GetPlayer(playerId)
     local Playercid2 = Player2.PlayerData.citizenid
@@ -204,7 +204,7 @@ function GeneratePetid()
     return dogid
 end
 
-RegisterServerEvent('tbrp_companions:server:SetPetsActive', function(id)
+RegisterServerEvent('hdrp-companions:server:SetPetsActive', function(id)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activedog = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
@@ -212,7 +212,7 @@ RegisterServerEvent('tbrp_companions:server:SetPetsActive', function(id)
     MySQL.update('UPDATE tbrp_companions SET active = ? WHERE id = ? AND citizenid = ?', { true, id, Player.PlayerData.citizenid })
 end)
 
-RegisterServerEvent('tbrp_companions:server:SetPetsUnActive', function(id, stablepetid)
+RegisterServerEvent('hdrp-companions:server:SetPetsUnActive', function(id, stablepetid)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activedog = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, false})
@@ -222,7 +222,7 @@ RegisterServerEvent('tbrp_companions:server:SetPetsUnActive', function(id, stabl
 end)
 
 -- store pet when flee is used
-RegisterServerEvent('tbrp_companions:server:fleeStorePet', function(stablepetid)
+RegisterServerEvent('hdrp-companions:server:fleeStorePet', function(stablepetid)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activedog = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, 1})
@@ -230,7 +230,7 @@ RegisterServerEvent('tbrp_companions:server:fleeStorePet', function(stablepetid)
     MySQL.update('UPDATE tbrp_companions SET stablepet = ? WHERE id = ? AND citizenid = ?', { stablepetid, activedog, Player.PlayerData.citizenid })
 end)
 
-RegisterServerEvent('tbrp_companions:renamePet', function(name)
+RegisterServerEvent('hdrp-companions:renamePet', function(name)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local newName = MySQL.query.await('UPDATE tbrp_companions SET name = ? WHERE citizenid = ? AND active = ?' , {name, Player.PlayerData.citizenid, 1})
@@ -246,7 +246,7 @@ end)
 --------------------------------------
 -- SELL PET
 --------------------------------------
-RegisterServerEvent('tbrp_companions:server:deletepet', function(data)
+RegisterServerEvent('hdrp-companions:server:deletepet', function(data)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local modelPet = nil
@@ -287,7 +287,7 @@ RegisterServerEvent('tbrp_companions:server:deletepet', function(data)
     end
 end)
 
-RSGCore.Functions.CreateCallback('tbrp_companions:server:GetPet', function(source, cb, stablepet)
+RSGCore.Functions.CreateCallback('hdrp-companions:server:GetPet', function(source, cb, stablepet)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local GetPet = {}
@@ -299,7 +299,7 @@ RSGCore.Functions.CreateCallback('tbrp_companions:server:GetPet', function(sourc
     end
 end)
 
-RSGCore.Functions.CreateCallback('tbrp_companions:server:GetPetB', function(source, cb)
+RSGCore.Functions.CreateCallback('hdrp-companions:server:GetPetB', function(source, cb)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local GetPet = {}
@@ -311,7 +311,7 @@ RSGCore.Functions.CreateCallback('tbrp_companions:server:GetPetB', function(sour
     end
 end)
 
-RSGCore.Functions.CreateCallback('tbrp_companions:server:GetActivePet', function(source, cb)
+RSGCore.Functions.CreateCallback('hdrp-companions:server:GetActivePet', function(source, cb)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local cid = Player.PlayerData.citizenid
@@ -324,7 +324,7 @@ RSGCore.Functions.CreateCallback('tbrp_companions:server:GetActivePet', function
 end)
 
 -- Check if Player has petbrush before brush the pet
-RegisterServerEvent('tbrp_companions:server:brushpet', function(item)
+RegisterServerEvent('hdrp-companions:server:brushpet', function(item)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
@@ -332,7 +332,7 @@ RegisterServerEvent('tbrp_companions:server:brushpet', function(item)
     local xppet = MySQL.scalar.await('SELECT dogxp FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
 
     if Player.Functions.GetItemByName(item) then
-        TriggerClientEvent("tbrp_companions:client:playerbrushpet", src, item)
+        TriggerClientEvent("hdrp-companions:client:playerbrushpet", src, item)
         local happiness = happinesspet + Config.HappinessIncrease
         if happiness >= 100 then
             happiness = 100
@@ -347,7 +347,7 @@ RegisterServerEvent('tbrp_companions:server:brushpet', function(item)
     end
 end)
 
-RegisterServerEvent('tbrp_companions:server:eatpet', function(item)
+RegisterServerEvent('hdrp-companions:server:eatpet', function(item)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
@@ -359,7 +359,7 @@ RegisterServerEvent('tbrp_companions:server:eatpet', function(item)
 
     if Player.Functions.GetItemByName(item) then
         Player.Functions.RemoveItem(item, 1, item.slot)
-        TriggerClientEvent("tbrp_companions:client:playerfeedpet", src, item)
+        TriggerClientEvent("hdrp-companions:client:playerfeedpet", src, item)
         if item == Config.AnimalDrink then
 			Player.Functions.RemoveItem(Config.AnimalDrink, 1)
 			TriggerClientEvent('inventory:client:ItemBox', src, RSGCore.Shared.Items[Config.AnimalDrink], "remove")
@@ -416,7 +416,7 @@ RegisterServerEvent('tbrp_companions:server:eatpet', function(item)
     end
 end)
 
-RegisterServerEvent('tbrp_companions:server:setpetAttributes', function(number)
+RegisterServerEvent('hdrp-companions:server:setpetAttributes', function(number)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
@@ -430,7 +430,7 @@ RegisterServerEvent('tbrp_companions:server:setpetAttributes', function(number)
     end
 end)
 
-RegisterServerEvent('tbrp_companions:server:setpetAttributesGrowth', function(number)
+RegisterServerEvent('hdrp-companions:server:setpetAttributesGrowth', function(number)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})

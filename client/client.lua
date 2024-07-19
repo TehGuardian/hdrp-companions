@@ -145,7 +145,7 @@ end
 local function FleePet()
     TaskAnimalFlee(dogPed, cache.ped, -1)
     Wait(10000)
-    TriggerEvent("tbrp_companions:client:FleePet")
+    TriggerEvent("hdrp-companions:client:FleePet")
     DeleteEntity(dogPed)
     dogPed = 0
     DogCalled = false
@@ -155,7 +155,7 @@ local function FleePetStore()
     TaskAnimalFlee(dogPed, cache.ped, -1)
     Wait(10000)
 	SetClosestStablePetsLocation()
-	TriggerServerEvent('tbrp_companions:server:fleeStorePet', closestStablePets)
+	TriggerServerEvent('hdrp-companions:server:fleeStorePet', closestStablePets)
     DeleteEntity(dogPed)
     dogPed = 0
     DogCalled = false
@@ -205,7 +205,7 @@ RegisterCommand('setpetname', function() -- rename pet name command
         return
     end
 
-    TriggerServerEvent('tbrp_companions:renamePet', input[1])
+    TriggerServerEvent('hdrp-companions:renamePet', input[1])
 end, false)
 
 --------------------------------------
@@ -221,7 +221,7 @@ Citizen.CreateThread(function()
 				options = {
 					{   type = "client",
 						action = function()
-							TriggerEvent('tbrp_companions:client:openpetshop2', v.stablepetid)
+							TriggerEvent('hdrp-companions:client:openpetshop2', v.stablepetid)
 						end,
 						icon = "fas fa-comments-dollar",
 						label = v.name,
@@ -232,7 +232,7 @@ Citizen.CreateThread(function()
 		else
             exports['rsg-core']:createPrompt(v.stablepetid, v.coords, RSGCore.Shared.Keybinds[Config.KeyBind], v.name, {
                 type = 'client',
-                event = 'tbrp_companions:client:openpetshop2',
+                event = 'hdrp-companions:client:openpetshop2',
 				args = { v.stablepetid },
             })
         end
@@ -248,7 +248,7 @@ local OpenPetShop = function(stablepetid)
             return
         end
     end
-    TriggerEvent('tbrp_companions:client:openpetshop', stablepetid)
+    TriggerEvent('hdrp-companions:client:openpetshop', stablepetid)
 end
 
 -- get petshelter hours function
@@ -284,12 +284,12 @@ CreateThread(function()
     end
 end)
 
-AddEventHandler('tbrp_companions:client:openpetshop2', function(stablepetid)
+AddEventHandler('hdrp-companions:client:openpetshop2', function(stablepetid)
     OpenPetShop(stablepetid)
 end)
 
 -- PETSHOP OPEN AND MENUS
-RegisterNetEvent('tbrp_companions:client:openpetshop', function(stablepetid)
+RegisterNetEvent('hdrp-companions:client:openpetshop', function(stablepetid)
     for _, v in pairs(Config.PetsLocations) do
         if v.stablepetid == stablepetid then
             lib.registerContext({
@@ -299,18 +299,18 @@ RegisterNetEvent('tbrp_companions:client:openpetshop', function(stablepetid)
                     {   title = 'Ver mascotas',
                         description = 'pets view pets',
                         icon = 'fa-solid fa-eye',
-                        event = 'tbrp_companions:client:menuinfo',
+                        event = 'hdrp-companions:client:menuinfo',
                         args = { stablepetid = stablepetid },
                         arrow = true
                     },
                     {   title = Lang:t('label.petshop_3'),
                         icon = 'fa-solid fa-coins',
-                        event = 'tbrp_companions:client:MenuDel',
+                        event = 'hdrp-companions:client:MenuDel',
                         arrow = true
                     },
                     {   title = 'Comercio/Intercambio',
                         icon = 'fa-solid fa-people-arrows',
-                        event = 'tbrp_companions:client:tradepet',
+                        event = 'hdrp-companions:client:tradepet',
                         arrow = true
                     },
                     {   title = "Vender animales capturados",
@@ -320,12 +320,12 @@ RegisterNetEvent('tbrp_companions:client:openpetshop', function(stablepetid)
                     },
                     {	title = Lang:t('label.petshop_2'),
                         icon = 'fa-solid fa-box',
-                        event = 'tbrp_companions:client:OpenPetShop',
+                        event = 'hdrp-companions:client:OpenPetShop',
                         arrow = true
                     },
                     {   title = 'Almacenar mascota',
                         icon = 'fa-solid fa-warehouse',
-                        event = 'tbrp_companions:client:storepet',
+                        event = 'hdrp-companions:client:storepet',
                         args = { stablepetid = stablepetid },
                         arrow = true
                     },
@@ -340,13 +340,13 @@ end)
 -- OPTIONS PETS STABLE MENUS
 -------------------------
 local function TradePet()
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data, newnames)
+    RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetActivePet', function(data, newnames)
         if dogPed ~= 0 then
             local player, distance = RSGCore.Functions.GetClosestPlayer()
             if player ~= -1 and distance < 1.5 then
                 local playerId = GetPlayerServerId(player)
                 local petId = data.dogid
-                TriggerServerEvent('tbrp_companions:server:TradePet', playerId, petId)
+                TriggerServerEvent('hdrp-companions:server:TradePet', playerId, petId)
                 RSGCore.Functions.Notify('pet_traded', 'success', 7500)
             else
                 RSGCore.Functions.Notify('no_nearby_player', 'success', 7500)
@@ -468,7 +468,7 @@ local function followOwner(pet, PlayerPedId)
 end
 
 local function SpawnPet()
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data)
+    RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetActivePet', function(data)
         if (data) then
             local ped = PlayerPedId()
             local player = PlayerId()
@@ -768,13 +768,13 @@ end)
 -------------------------
 local PetId = nil
 
-RegisterNetEvent('tbrp_companions:client:SpawnPet', function(data)
+RegisterNetEvent('hdrp-companions:client:SpawnPet', function(data)
     PetId = data.player.id
-    TriggerServerEvent("tbrp_companions:server:SetPetsActive", data.player.id)
+    TriggerServerEvent("hdrp-companions:server:SetPetsActive", data.player.id)
     RSGCore.Functions.Notify('pet active', 'success', 7500)
 end)
 
-AddEventHandler('tbrp_companions:client:FleePet', function()
+AddEventHandler('hdrp-companions:client:FleePet', function()
     if dogPed then
         getControlOfEntity(dogPed)
 
@@ -792,9 +792,9 @@ AddEventHandler('tbrp_companions:client:FleePet', function()
     end
 end)
 
-RegisterNetEvent('tbrp_companions:client:storepet', function(data)
+RegisterNetEvent('hdrp-companions:client:storepet', function(data)
     if (dogPed ~= 0) then
-        TriggerServerEvent('tbrp_companions:server:SetPetsUnActive', PetId, data.stablepetid)
+        TriggerServerEvent('hdrp-companions:server:SetPetsUnActive', PetId, data.stablepetid)
         RSGCore.Functions.Notify('success.storing_pet', 'success', 7500)
         FleePetStore()
         DogCalled = false
@@ -804,8 +804,8 @@ RegisterNetEvent('tbrp_companions:client:storepet', function(data)
 end)
 
 -- pet menu trade
-RegisterNetEvent("tbrp_companions:client:tradepet", function(data)
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data, newnames)
+RegisterNetEvent("hdrp-companions:client:tradepet", function(data)
+    RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetActivePet', function(data, newnames)
         if (dogPed ~= 0) then
             TradePet()
             if Config.StoreFleedPet then
@@ -820,9 +820,9 @@ RegisterNetEvent("tbrp_companions:client:tradepet", function(data)
     end)
 end)
 
-RegisterNetEvent('tbrp_companions:client:menuinfo', function(data)
+RegisterNetEvent('hdrp-companions:client:menuinfo', function(data)
 
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetPet', function(pets)
+    RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetPet', function(pets)
 
         if pets == nil then
             RSGCore.Functions.Notify('error.no_pets', 'error')
@@ -837,7 +837,7 @@ RegisterNetEvent('tbrp_companions:client:menuinfo', function(data)
                 title = pets.name,
                 description = 'Gender:' ..pets.gender ..' Xp: ' .. pets.dogxp .. ' Active: ' .. pets.active,
                 icon = 'fa-solid fa-pet',
-                event = 'tbrp_companions:client:SpawnPet',
+                event = 'hdrp-companions:client:SpawnPet',
                 args = { player = pets, active = 1 },
                 arrow = true
             }
@@ -858,8 +858,8 @@ RegisterNetEvent('tbrp_companions:client:menuinfo', function(data)
 end)
 
 -- pet menu sell
-RegisterNetEvent('tbrp_companions:client:MenuDel', function()
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetPetB', function(pets)
+RegisterNetEvent('hdrp-companions:client:MenuDel', function()
+    RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetPetB', function(pets)
         if pets == nil then
             RSGCore.Functions.Notify('error.no_pets', 'error')
             return
@@ -871,7 +871,7 @@ RegisterNetEvent('tbrp_companions:client:MenuDel', function()
                 title = pets.name,
                 description = 'Gender:' ..pets.gender ..' Xp: ' .. pets.dogxp .. ' Active: ' .. pets.active,
                 icon = 'fa-solid fa-paw',
-                serverEvent = 'tbrp_companions:server:deletepet',
+                serverEvent = 'hdrp-companions:server:deletepet',
                 args = { petid = pets.id, name = pets.name },
                 arrow = true
             }
@@ -961,8 +961,8 @@ local loadAnimDict = function(dict)
 end
 
 -- Player revive pet
-RegisterNetEvent("tbrp_companions:client:revivepet")
-AddEventHandler("tbrp_companions:client:revivepet", function(item, data)
+RegisterNetEvent("hdrp-companions:client:revivepet")
+AddEventHandler("hdrp-companions:client:revivepet", function(item, data)
     local playerPed = PlayerPedId()
     local playercoords = GetEntityCoords(playerPed)
     local petcoords = GetEntityCoords(dogPed)
@@ -1009,7 +1009,7 @@ AddEventHandler("tbrp_companions:client:revivepet", function(item, data)
         }) then
             ClearPedTasks(playerPed)
             FreezeEntityPosition(playerPed, false)
-            TriggerServerEvent('tbrp_companions:server:revivepet', item)
+            TriggerServerEvent('hdrp-companions:server:revivepet', item)
             SpawnPet()
         end
     else
@@ -1057,7 +1057,7 @@ end)
 --         local sleep = 5000
 --         local petdirt = Citizen.InvokeNative(0x147149F2E909323C, dogPed, 16, Citizen.ResultAsInteger())
 --         if dogPed ~= 0 then
---             TriggerServerEvent('tbrp_companions:server:setpetAttributes', petdirt)
+--             TriggerServerEvent('hdrp-companions:server:setpetAttributes', petdirt)
 --         end
 --         Wait(sleep)
 --     end
@@ -1066,7 +1066,7 @@ end)
 -----------------
 -- Pet menu Shop
 -----------------
-RegisterNetEvent('tbrp_companions:client:OpenPetShop', function()
+RegisterNetEvent('hdrp-companions:client:OpenPetShop', function()
     local ShopItems = {}
     ShopItems.label = Lang:t('label.petshop_2')
     ShopItems.items = Config.PetShop
@@ -1077,8 +1077,8 @@ end)
 -------------------------------------------------------------------------------
 -- Command findpet get pet location server/server.lua
 -------------------------------------------------------------------------------
-RegisterNetEvent('tbrp_companions:client:getpetlocation', function()
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetAllPets', function(results)
+RegisterNetEvent('hdrp-companions:client:getpetlocation', function()
+    RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetAllPets', function(results)
         if results ~= nil then
             local options = {}
             for i = 1, #results do
@@ -1105,8 +1105,8 @@ end)
 --------------------------
 -- Mypets
 --------------------------
-RegisterNetEvent('tbrp_companions:client:mypets', function()
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetAllPets', function(results)
+RegisterNetEvent('hdrp-companions:client:mypets', function()
+    RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetAllPets', function(results)
         if results ~= nil then
             local options = {}
             for i = 1, #results do
@@ -1148,7 +1148,7 @@ RegisterNetEvent('tbrp_companions:client:mypets', function()
                         progress = results.hunger,
                         icon = 'fa-solid fa-drumstick-bite',
                         onSelect = function()
-                            TriggerServerEvent('tbrp_companions:server:eatpet', 'feed_dog')
+                            TriggerServerEvent('hdrp-companions:server:eatpet', 'feed_dog')
                         end,
                         arrow = true
                     }
@@ -1157,7 +1157,7 @@ RegisterNetEvent('tbrp_companions:client:mypets', function()
                         progress = results.thirst,
                         icon = 'fa-solid fa-droplet',
                         onSelect = function()
-                            TriggerServerEvent('tbrp_companions:server:eatpet', 'drink_dog')
+                            TriggerServerEvent('hdrp-companions:server:eatpet', 'drink_dog')
                         end,
                         arrow = true
                     }
@@ -1166,7 +1166,7 @@ RegisterNetEvent('tbrp_companions:client:mypets', function()
                         progress = results.dirt,
                         icon = 'fa-solid fa-shower',
                         onSelect = function()
-                            TriggerServerEvent('tbrp_companions:server:brushpet', 'horsebrush')
+                            TriggerServerEvent('hdrp-companions:server:brushpet', 'horsebrush')
                         end,
                         arrow = true
                     }
@@ -1240,7 +1240,7 @@ local function TrackTarget(targetentity)
 end
 
 local function ReturnKillToPlayer(fetchedKill, PlayerPedId)
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data)
+    RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetActivePet', function(data)
         if (data) then
 			local coords = GetEntityCoords(PlayerPedId)
 			TaskGoToCoordAnyMeans(dogPed, coords, 1.5, 0, 0, 786603, 0xbf800000)
@@ -1287,8 +1287,8 @@ local function RetrieveKill(ClosestPed)
 	end
 end
 
-RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPedmenu)
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetAllPets', function(results)
+RegisterNetEvent('hdrp-companions:client:mypetsactions', function(dogPedmenu)
+    RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetAllPets', function(results)
         if results ~= nil then
             local options = {}
             for i = 1, #results do
@@ -1333,7 +1333,7 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPedmenu)
                         title = 'Animations',
                         icon = 'fa-solid fa-share',
                         onSelect = function()
-                            TriggerEvent('tbrp_companions:client:mypetsanimations', dogPedmenu)
+                            TriggerEvent('hdrp-companions:client:mypetsanimations', dogPedmenu)
                         end,
                         arrow = true
                     }
@@ -1356,7 +1356,7 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPedmenu)
                         title = 'Comercio/Intercambio',
                         icon = 'fa-solid fa-horse',
                         onSelect = function()
-                            TriggerEvent('tbrp_companions:client:tradepet')
+                            TriggerEvent('hdrp-companions:client:tradepet')
                         end,
                         arrow = true
                     }
@@ -1426,7 +1426,7 @@ local function petAnimation(pet, dict, dictname)
 	FreezeEntityPosition(pet, true)
 end
 
-RegisterNetEvent('tbrp_companions:client:mypetsanimations', function(dogPedmenu)
+RegisterNetEvent('hdrp-companions:client:mypetsanimations', function(dogPedmenu)
 	local options = {}
     options[#options + 1] = {
         title = 'STOP ANIM',
@@ -1478,11 +1478,11 @@ Citizen.CreateThread(function()
         if IsPlayerTargettingAnything(id) then
             local result, entity = GetPlayerTargetEntity(id)
             if PromptHasStandardModeCompleted(MenuPrompt[entity]) then
-			    TriggerEvent("tbrp_companions:client:mypets")
+			    TriggerEvent("hdrp-companions:client:mypets")
 				Wait(2000)
             end
             if PromptHasStandardModeCompleted(ActionsPrompt[entity]) then
-			    TriggerEvent("tbrp_companions:client:mypetsactions", dogPed)
+			    TriggerEvent("hdrp-companions:client:mypetsactions", dogPed)
 				Wait(2000)
             end
 			if PromptHasStandardModeCompleted(AttackPrompt[entity]) then
@@ -1544,8 +1544,8 @@ Citizen.CreateThread(function()
 end)
 
 -- player feed pet
-RegisterNetEvent('tbrp_companions:client:playerfeedpet')
-AddEventHandler('tbrp_companions:client:playerfeedpet', function(itemName)
+RegisterNetEvent('hdrp-companions:client:playerfeedpet')
+AddEventHandler('hdrp-companions:client:playerfeedpet', function(itemName)
     local pcoords = GetEntityCoords(PlayerPedId())
     local hcoords = GetEntityCoords(dogPed)
 
@@ -1613,8 +1613,8 @@ AddEventHandler('tbrp_companions:client:playerfeedpet', function(itemName)
 end)
 
 -- player brush pet
-RegisterNetEvent('tbrp_companions:client:playerbrushpet')
-AddEventHandler('tbrp_companions:client:playerbrushpet', function(itemName)
+RegisterNetEvent('hdrp-companions:client:playerbrushpet')
+AddEventHandler('hdrp-companions:client:playerbrushpet', function(itemName)
     local pcoords = GetEntityCoords(PlayerPedId())
     local hcoords = GetEntityCoords(dogPed)
 
@@ -1867,8 +1867,8 @@ end
 -- 	end
 -- end
 
--- RegisterNetEvent('tbrp_companions:client:spawndog')
--- AddEventHandler('tbrp_companions:client:spawndog', function (dog, skin, isInShop, xp, canTrack)
+-- RegisterNetEvent('hdrp-companions:client:spawndog')
+-- AddEventHandler('hdrp-companions:client:spawndog', function (dog, skin, isInShop, xp, canTrack)
 -- 	if dogPed then
 -- 		RSGCore.Functions.Notify(Lang:t('info.petalreadyhere'), 'info', 3000)
 -- 	else
@@ -1917,9 +1917,9 @@ end
 --------------------------------------
 -- UPDATE PET FED / CRECIMIENTO DE PET DEPENDE DE LA XP PARA CONSEGUIR MAS FUNCIONES
 --------------------------------------
--- RegisterNetEvent('tbrp_companions:client:UpdateDogFed')
--- AddEventHandler('tbrp_companions:client:UpdateDogFed', function (newXP, growAnimal)
---     RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data)
+-- RegisterNetEvent('hdrp-companions:client:UpdateDogFed')
+-- AddEventHandler('hdrp-companions:client:UpdateDogFed', function (newXP, growAnimal)
+--     RSGCore.Functions.TriggerCallback('hdrp-companions:server:GetActivePet', function(data)
 -- 		if (data) then
 -- 			if Config.RaiseAnimal and growAnimal then
 -- 				dogXP = newXP

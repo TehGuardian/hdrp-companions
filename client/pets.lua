@@ -79,7 +79,7 @@ function NearPet(petmodel, petcoords, petprice, petname, stablepetid)
                     local setPetGender = dialog[2]
 
                     if setPetName and setPetGender then
-                        TriggerServerEvent('tbrp_companions:server:BuyPet', petprice, petmodel, stablepetid, setPetName, setPetGender)
+                        TriggerServerEvent('hdrp-companions:server:BuyPet', petprice, petmodel, stablepetid, setPetName, setPetGender)
                     else
                         return
                     end
