@@ -9,13 +9,13 @@ Config.img = "rsg-inventory/html/images/"
 -- SHOP SETTINGS
 ---------------------------------
 Config.KeyBind      = 'J'
-Config.UseTarget    = true --For Pet Shop NPC
-Config.AlwaysOpen   = true -- if false configure the open/close times
-Config.OpenTime     = 8 -- store opens
-Config.CloseTime    = 20 -- store closes
-Config.Payment      = 'money' -- can 'item' or 'money'
-Config.PaymentType  = 'cash' -- can 'cash' or 'bloodmoney'
-Config.SellTime     = 3000 -- time sell all
+Config.UseTarget    = true      -- For Pet Shop NPC
+Config.AlwaysOpen   = true      -- if false configure the open/close times
+Config.OpenTime     = 8         -- store opens
+Config.CloseTime    = 20        -- store closes
+Config.Payment      = 'money'   -- can 'item' or 'money'
+Config.PaymentType  = 'cash'    -- can 'cash' or 'bloodmoney'
+Config.SellTime     = 3000      -- time sell all
 
 -- stable npc settings
 Config.DistanceSpawn = 20.0
@@ -24,38 +24,38 @@ Config.FadeIn        = true
 -- items shop
 Config.PetShop = {
     -- pet shop items
-    [1] = { name = 'feed_dog', price = 3, amount = 500, info = {}, type = 'item', slot = 1, },
-    [2] = { name = "horsebrush",   price = 5,    amount = 500,  info = {}, type = "item", slot = 2, },
-    -- [2] = { name = 'stimulant_dog', price = 3, amount = 500, info = {}, type = 'item', slot = 2, },
+    [1] = { name = "horsebrush",   price = 5,    amount = 500,  info = {}, type = "item", slot = 1, },
+    [2] = { name = 'feed_dog', price = 3, amount = 500, info = {}, type = 'item', slot = 2, },
+    [3] = { name = 'drink_dog', price = 0.5, amount = 500, info = {}, type = 'item', slot = 3, },
 }
 
--- sell animals trap
+-- sell animals trap 1$ = 1/100
 local animaltrap = {
-    ['a_c_armadillo_01'] =  100,
-    ['a_c_badger_01']    =  100,
-    ['a_c_chipmunk_01']  =  100,
-    ['a_c_muskrat_01'] 	 =  100,
-    ['a_c_possum_01'] 	 =  100,
-    ['a_c_rabbit_01'] 	 =  100,
-    ['a_c_raccoon_01'] 	 =  100,
-    ['a_c_rat_01'] 	 =  100,
-    ['a_c_rat_01-3'] 	 =  100,
-    ['a_c_rat_01-4'] 	 =  100,
-    ['a_c_squirrel_01']  =  100,
+    ['a_c_armadillo_01']  =  100,
+    ['a_c_badger_01']     =  100,
+    ['a_c_chipmunk_01']   =  100,
+    ['a_c_muskrat_01'] 	  =  100,
+    ['a_c_possum_01'] 	  =  100,
+    ['a_c_rabbit_01'] 	  =  100,
+    ['a_c_raccoon_01'] 	  =  100,
+    ['a_c_rat_01'] 	      =  100,
+    ['a_c_rat_01-3'] 	  =  100,
+    ['a_c_rat_01-4'] 	  =  100,
+    ['a_c_squirrel_01']   =  100,
     ['a_c_squirrel_01-2'] =  100,
     ['a_c_squirrel_01-3'] =  100,
     ['a_c_skunk_01']      =  100,
 }
 
 local birdtrap = {
-    ['a_c_bluejay_01'] 	 =  100,
-    ['a_c_cardinal_01']  =  100,
+    ['a_c_bluejay_01'] 	    =  100,
+    ['a_c_cardinal_01']     =  100,
     ['a_c_robin_01'] 	    =  100,
     ['a_c_cedarwaxwing_01'] =  100,
     ['a_c_crow_01'] 		=  100,
     ['a_c_oriole_01'] 		=  100,
     ['a_c_oriole_01-1'] 	=  100,
-    ['a_c_pigeon'] 		=  100,
+    ['a_c_pigeon'] 		    =  100,
     ['a_c_songbird_01']     =  100,
     ['a_c_songbird_01-1'] 	=  100,
     ['a_c_sparrow_01'] 		=  100,
@@ -66,17 +66,17 @@ local birdtrap = {
 }
 
 local reptiltrap = {
-    ['a_c_snake_01']         =  100,
-    ['a_c_snakeredboa_01'] 	 =  100,
-    ['a_c_snakeredboa_01-1'] =  100,
-    ['a_c_snakeredboa_01-2'] = 100,    
+    ['a_c_snake_01']         = 100,
+    ['a_c_snakeredboa_01'] 	 = 100,
+    ['a_c_snakeredboa_01-1'] = 100,
+    ['a_c_snakeredboa_01-2'] = 100,
     ['a_c_snakeblacktailrattle_01'] = 100,
     ['a_c_snakeferdelance_01'] 		= 100,
 }
 
 local fishtrap = {
-    ['a_c_snakewater_01']         =  100,
-    ['a_c_snakewater_01-2']         =  100,
+    ['a_c_snakewater_01']    =  100,
+    ['a_c_snakewater_01-2']  =  100,
 }
 
 ---------------------------------
@@ -94,7 +94,6 @@ Config.PetsLocations = {
 
         Ring = true,
         ActiveDistance = 1.5,
-        -- Spawndog = vector4(-286.3233, 659.20825, 113.41064, 130.15997),
 		scenario = 'MP_LOBBY_STANDING_D',
 
         showblip = true,
@@ -113,7 +112,6 @@ Config.PetsLocations = {
 
         Ring = true,
         ActiveDistance = 1.5,
-        -- Spawndog = vector4(-947.0184, -1225.372, 52.836936, 192.60287),
         scenario = 'MP_LOBBY_STANDING_C',
 
         showblip = true,
@@ -136,13 +134,13 @@ Config.PetsLocations = {
 --------------------
 -- Pets Attributes
 --------------------
-Config.SpawnOnRoadOnly    = false -- always spawn on road
-Config.CheckCycle         = 1 -- pet check system (mins)
-Config.StoreFleedPet      = true -- store pet if flee is used
+Config.SpawnOnRoadOnly    = false   -- always spawn on road
+Config.CheckCycle         = 1       -- pet check system (mins)
+Config.StoreFleedPet      = true    -- store pet if flee is used
 Config.CycleNotify        = true
-Config.CronupkeepJob      = '*/1 * * * *'          -- cronjob time (every hour = 0 * * * *) / (every 30 mins = */30 * * * *)
+Config.CronupkeepJob      = '*/1 * * * *'  -- cronjob time (every hour = 0 * * * *) / (every 30 mins = */30 * * * *)
 
-Config.PetDieAge        = 30 -- pet age in days till it dies (days)
+Config.PetDieAge        = 30    -- pet age in days till it dies (days)
 Config.StartingHeart    = 100
 Config.StartingHunger   = 75.0
 Config.StartingThirst   = 75.0
@@ -150,14 +148,14 @@ Config.StartingHappines = 75.0
 
 Config.AnimalFood        = 'feed_dog' -- The item required to feed and/or level up your pet
 Config.AnimalDrink       = 'drink_dog'
-Config.HungerIncrease    = math.random(25, 50) -- amount increased when drink_dog
-Config.ThirstIncrease    = math.random(25, 50) -- amount increased when feed_dog
-Config.DegradeDirt       = math.random(3, 5)
-Config.HappinessIncrease = math.random(8, 12)
+Config.HungerIncrease    = math.random(25, 50)  -- amount increased when drink_dog
+Config.ThirstIncrease    = math.random(25, 50)  -- amount increased when feed_dog
+Config.DegradeDirt       = math.random(3, 5)    -- amount decreased dirt
+Config.HappinessIncrease = math.random(8, 12)   -- amount increased Happiness
 
-Config.XpPerFeed         = math.random(10, 20) -- The amount of XP every feed gives
-Config.XpPerClean        = math.random(1, 5) -- The amount of XP every feed gives
-Config.XpPerDrink        = math.random(5, 10) -- The amount of XP every feed gives
+Config.XpPerFeed         = math.random(10, 20)  -- The amount of XP every feed gives
+Config.XpPerClean        = math.random(1, 5)    -- The amount of XP every feed gives
+Config.XpPerDrink        = math.random(5, 10)   -- The amount of XP every feed gives
 
 Config.PetAttributes = {
     FollowDistance  = 3,
@@ -191,33 +189,33 @@ Config.FullGrownXp      = 1000 -- The amount of XP that it is fully grown. At th
 -- Config.FeedInterval     = 1800 -- 1800 = 30 min, How often in seconds the pet will want to be fed
 
 --The attack command sets your animal to attack a target
-Config.AttackCommand     = true -- Set true to be able to send your pet to attack a target you are locked on (holding right-click on them)
-Config.AttackOnly = {-- <<Only have one of these 3 be true or all 3 false if you want the attack prompt on all targets -->>
-    Players = false, -- The attack command works on only player peds
-    Animals = false, -- The attack command works on animal types, not players/peds
-    NPC     = false, -- If this is enabled, you can attack NPC peds and animals but not people
+Config.AttackCommand    = true -- Set true to be able to send your pet to attack a target you are locked on (holding right-click on them)
+Config.AttackOnly = {   -- <<Only have one of these 3 be true or all 3 false if you want the attack prompt on all targets -->>
+    Players = false,    -- The attack command works on only player peds
+    Animals = false,    -- The attack command works on animal types, not players/peds
+    NPC     = false,    -- If this is enabled, you can attack NPC peds and animals but not people
 }
 
 --The track command sets your animal to follow the selected target 
-Config.TrackCommand      = true -- If this is enabled, you can send pets to track a target you are locked on
-Config.TrackOnly = {  -- <<Only have one of these 3 be true or all 3 false if you want the track prompt on all targets -->>
-    Players  = false, -- The track command works on only player peds
-    Animals  = false, -- The track command works on animal types, not players/peds
-    NPC      = false, -- If this is enabled, you can track NPC peds and animals but not people
+Config.TrackCommand     = true -- If this is enabled, you can send pets to track a target you are locked on
+Config.TrackOnly = {    -- <<Only have one of these 3 be true or all 3 false if you want the track prompt on all targets -->>
+    Players  = false,   -- The track command works on only player peds
+    Animals  = false,   -- The track command works on animal types, not players/peds
+    NPC      = false,   -- If this is enabled, you can track NPC peds and animals but not people
 }
 ---------------------------------
 -- pet health/stamina/ability/speed/acceleration levels
 ---------------------------------
-Config.Level1 = 100
-Config.Level2 = 200
-Config.Level3 = 300
-Config.Level4 = 400
-Config.Level5 = 500
-Config.Level6 = 900
-Config.Level7 = 1000
-Config.Level8 = 1500
-Config.Level9 = 1750
-Config.Level10 = 2000
+Config.Level1   = 100
+Config.Level2   = 200
+Config.Level3   = 300
+Config.Level4   = 400
+Config.Level5   = 500
+Config.Level6   = 900
+Config.Level7   = 1000
+Config.Level8   = 1500
+Config.Level9   = 1750
+Config.Level10  = 2000
 
 ---------------------------------
 -- player feed pet settings
@@ -225,6 +223,7 @@ Config.Level10 = 2000
 Config.PetFeed = {
     ["feed_dog"]      = { health = 10,  eating = 10,  ismedicine = false },
     ["drink_dog"]     = { health = 10,  thirst = 10,  ismedicine = false },
+
     -- medicineHash is optional. If u do not set, the default value
     -- ["stimulant_dog"] = { health = 100, stamina = 100, ismedicine = true, medicineHash = "consumable_pet_stimulant" },
 }
@@ -234,15 +233,14 @@ Config.PetFeed = {
 ---------------------------------
 Config.MaxBondingLevel = 5000
 
-
 -------------------------
 -- EXTRA Webhooks / RANKING
 -----------------------
 Config.Webhooks = {
     ["wildpet"] = "https://discord.com/api/webhooks/1248940878056394823/f_lq_PeslXPN0_k4ooRB0UJJNEdgpqCz04y911SfpOzfeciEh_rvKEt6TVxHishQbTa7",
     ["petinfo"] = "https://discord.com/api/webhooks/1263651756626415646/XtPT_a4HIhgEuwtmaRvYvapJXW8zNAkgnn3cShzjOr-649MLLQLFRwy6vd67M_MpqCtS",
-    ["tarder"] = "https://discord.com/api/webhooks/1248299675400929290/sHnbVwQMuInW1YqyA2U_2KJKKKZCbostdPjAssvX8nl2DTZ_Hz5y8DEJZwGSTpquEcvU",
-    ["tarderPlayer"] = "https://discord.com/api/webhooks/1248983616734888038/sfrwUhRghpgan2xHsklh8MarNKvFX0wRrFehr4ixWu8gEXoIBV373Ar--wsdaXXjoLUD",
+    ["trader"] = "https://discord.com/api/webhooks/1248299675400929290/sHnbVwQMuInW1YqyA2U_2KJKKKZCbostdPjAssvX8nl2DTZ_Hz5y8DEJZwGSTpquEcvU",
+    ["traderPlayer"] = "https://discord.com/api/webhooks/1248983616734888038/sfrwUhRghpgan2xHsklh8MarNKvFX0wRrFehr4ixWu8gEXoIBV373Ar--wsdaXXjoLUD",
 }
 
 ---------------------------------

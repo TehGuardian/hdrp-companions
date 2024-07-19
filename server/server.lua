@@ -19,8 +19,8 @@ local function sendToDiscord(color, name, message, footer, type)
         PerformHttpRequest(Config['Webhooks']['petinfo'], function(err, text, headers) end, 'POST', json.encode({username = name, embeds = embed}), { ['Content-Type'] = 'application/json' })
     elseif type == "trader" then
         PerformHttpRequest(Config['Webhooks']['trader'], function(err, text, headers) end, 'POST', json.encode({username = name, embeds = embed}), { ['Content-Type'] = 'application/json' })
-    elseif type == "tarderPlayer" then
-        PerformHttpRequest(Config['Webhooks']['tarderPlayer'], function(err, text, headers) end, 'POST', json.encode({username = name, embeds = embed}), { ['Content-Type'] = 'application/json' })
+    elseif type == "traderPlayer" then
+        PerformHttpRequest(Config['Webhooks']['traderPlayer'], function(err, text, headers) end, 'POST', json.encode({username = name, embeds = embed}), { ['Content-Type'] = 'application/json' })
     end
 end
 
@@ -36,14 +36,6 @@ RSGCore.Functions.CreateUseableItem('feed_dog', function(source, item)
 end)
 
 RSGCore.Functions.CreateUseableItem('drink_dog', function(source, item)
-    local Player = RSGCore.Functions.GetPlayer(source)
-    if Player.Functions.RemoveItem(item.name, 1, item.slot) then
-        TriggerClientEvent("tbrp_companions:client:playerfeedpet", source, item.name)
-    end
-end)
-
- -- feed Stimulant dog 
-RSGCore.Functions.CreateUseableItem("stimulant_dog", function(source, item)
     local Player = RSGCore.Functions.GetPlayer(source)
     if Player.Functions.RemoveItem(item.name, 1, item.slot) then
         TriggerClientEvent("tbrp_companions:client:playerfeedpet", source, item.name)
@@ -96,7 +88,7 @@ end)
 
 RegisterServerEvent('tbrp_companions:server:revivepet', function(item)
     local src = source
-    local Player = RSGCore.Functions.GetPlayer(source)
+    local Player = RSGCore.Functions.GetPlayer(src)
 
     if Player.Functions.RemoveItem(item.name, 1, item.slot) then
         TriggerClientEvent("inventory:client:ItemBox", src, RSGCore.Shared.Items[item.name], "remove")
@@ -117,7 +109,7 @@ RegisterServerEvent('tbrp_companions:server:BuyPet', function(price, model, stab
     local hunger = Config.StartingHunger
     local thirst = Config.StartingThirst
     local happiness = Config.StartingHappines
-	local canTrack = CanTrack(src)
+	-- local canTrack = CanTrack(src)
 
     MySQL.insert('INSERT INTO tbrp_companions(stablepet, citizenid, dogid, name, dog, skin, gender, active, born, live, hunger, thirst, happiness) VALUES(@stablepet, @citizenid, @dogid, @name, @dog, @skin, @gender, @active, @born, @live, @hunger, @thirst, @happiness)', {
         ['@stablepet'] = stablepet,
@@ -175,7 +167,7 @@ RegisterServerEvent('tbrp_companions:server:BuyPet', function(price, model, stab
 end)
 
 ------------------------
--- BUY PETS WITH CLIENT/client.LUA
+-- BUY PETS
 ------------------------
 RegisterNetEvent("tbrp_companions:server:TradePet", function(playerId, petId, source)
     local src = source
@@ -195,7 +187,7 @@ RegisterNetEvent("tbrp_companions:server:TradePet", function(playerId, petId, so
         petId
     )
 
-    sendToDiscord(16753920,	"Companions | TRADE PET", discordMessage, "Trader for RSG Framework", "tarderPlayer")
+    sendToDiscord(16753920,	"Companions | TRADE PET", discordMessage, "Trader for RSG Framework", "traderPlayer")
 end)
 
 -- generate dogid
@@ -258,13 +250,13 @@ RegisterServerEvent('tbrp_companions:server:deletepet', function(data)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local modelPet = nil
-    local petid = data.dogid
+    local petid = data.petid
     local petname = data.name
     local player_pets = MySQL.query.await('SELECT * FROM tbrp_companions WHERE id = ? AND `citizenid` = ?', { petid, Player.PlayerData.citizenid })
     for i = 1, #player_pets do
         if tonumber(player_pets[i].id) == tonumber(petid) then
             modelPet = player_pets[i].dog
-            MySQL.update('DELETE FROM tbrp_companions WHERE id = ? AND citizenid = ?', { data.dogid, Player.PlayerData.citizenid })
+            MySQL.update('DELETE FROM tbrp_companions WHERE id = ? AND citizenid = ?', { petid, Player.PlayerData.citizenid })
         end
     end
     for k, v in pairs(Config.PetBuySpawn) do
@@ -654,28 +646,28 @@ end)
 -- TRACK EVENT
 --------------------------------------
 
-function CanTrack(source)
-	local src = source
-	local cb = false
-	if Config.TrackCommand then
-		if Config.AnimalTrackingJobOnly then
-			local job = getJob(src)
-			for k, v in pairs(Config.AnimalTrackingJobs) do
-				if job == v then
-				cb = true
-				end
-			end
-		else
-			cb = true
-		end
-	end
-	return(cb)
-end
+-- local function getJob(source)
+-- 	local src = source
+--  	local cb = false
+-- 	local Character = RSGCore.Functions.GetPlayerData(src).job
+-- 	cb = Player.PlayerData.job
+--  	return cb
+-- end
 
-function getJob(source)
-	local src = source
- 	local cb = false
-	local Character = RSGCore.Functions.GetPlayerData(src).job
-	cb = Player.PlayerData.job
- 	return cb
-end
+-- function CanTrack(source)
+-- 	local src = source
+-- 	local cb = false
+-- 	if Config.TrackCommand then
+-- 		if Config.AnimalTrackingJobOnly then
+-- 			local job = getJob(src)
+-- 			for k, v in pairs(Config.AnimalTrackingJobs) do
+-- 				if job == v then
+-- 				cb = true
+-- 				end
+-- 			end
+-- 		else
+-- 			cb = true
+-- 		end
+-- 	end
+-- 	return(cb)
+-- end

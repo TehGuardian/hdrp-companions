@@ -1,4 +1,3 @@
--- Based on Malik's and Blue's animal shelters and vorp animal shelter, hunting/raising/tracking system added by HAL
 local RSGCore = exports['rsg-core']:GetCoreObject()
 
 ---- pets
@@ -82,7 +81,7 @@ function AddTrackPrompts(entity)
     PromptRegisterEnd(TrackPrompt[entity])
 end
 
-function AddActionsPrompts(entity)
+local function AddActionsPrompts(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
     local str4 = 'Actions'
     ActionsPrompt[entity] = PromptRegisterBegin()
@@ -96,7 +95,7 @@ function AddActionsPrompts(entity)
     PromptRegisterEnd(ActionsPrompt[entity])
 end
 
-function AddMenuPrompts(entity)
+local function AddMenuPrompts(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
     local str7 = 'Menu'
     MenuPrompt[entity] = PromptRegisterBegin()
@@ -433,6 +432,41 @@ local function setPetBehavior(pet)
 	SetRelationshipBetweenGroups(1, GetPedRelationshipGroupHash(pet), -1683752762)
 end
 
+local function getControlOfEntity(entity)
+    NetworkRequestControlOfEntity(entity)
+    SetEntityAsMissionEntity(entity, true, true)
+    local timeout = 2000
+
+    while timeout > 0 and NetworkHasControlOfEntity(entity) == nil do
+        Wait(100)
+        timeout = timeout - 100
+    end
+    return NetworkHasControlOfEntity(entity)
+end
+
+CreateThread(function()
+    while true do
+        if (timeout) then
+            if (timeoutTimer == 0) then
+                timeout = false
+            end
+            timeoutTimer = timeoutTimer - 1
+            Wait(1000)
+        end
+        Wait(0)
+    end
+end)
+
+---------------
+--
+---------------
+local function followOwner(pet, PlayerPedId)
+	FreezeEntityPosition(pet, false)
+	ClearPedTasks(pet)
+	ClearPedSecondaryTask(pet)
+	TaskFollowToOffsetOfEntity(pet, PlayerPedId, 0.0, -1.5, 0.0, 1.0, -1,  Config.PetAttributes.FollowDistance * 100000000, 1, 1, 0, 0, 1)
+end
+
 local function SpawnPet()
     RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data)
         if (data) then
@@ -701,31 +735,6 @@ RegisterCommand("callpet", function() --  COMMAND
 	Wait(3000) -- Spam protect
 end, false)
 
-function getControlOfEntity(entity)
-    NetworkRequestControlOfEntity(entity)
-    SetEntityAsMissionEntity(entity, true, true)
-    local timeout = 2000
-
-    while timeout > 0 and NetworkHasControlOfEntity(entity) == nil do
-        Wait(100)
-        timeout = timeout - 100
-    end
-    return NetworkHasControlOfEntity(entity)
-end
-
-CreateThread(function()
-    while true do
-        if (timeout) then
-            if (timeoutTimer == 0) then
-                timeout = false
-            end
-            timeoutTimer = timeoutTimer - 1
-            Wait(1000)
-        end
-        Wait(0)
-    end
-end)
-
 ---------------
 -- STOP RESOURCE
 ---------------
@@ -934,104 +943,6 @@ Citizen.CreateThread(function() -- call
         end
 		Wait(1)
 	end
-end)
-
--- player feed pet
-RegisterNetEvent('tbrp_companions:client:playerfeedpet')
-AddEventHandler('tbrp_companions:client:playerfeedpet', function(itemName)
-    local pcoords = GetEntityCoords(PlayerPedId())
-    local hcoords = GetEntityCoords(dogPed)
-
-    if #(pcoords - hcoords) > 2.0 then
-        RSGCore.Functions.Notify('need to be closer', 'error')
-        return
-    end
-
-    if Config.PetFeed[itemName] ~= nil then
-        if Config.PetFeed[itemName]["ismedicine"] ~= nil then
-            if Config.PetFeed[itemName]["ismedicine"] == true then
-                -- is medicine
-                Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, -1355254781, 0, 0) -- TaskAnimalInteraction
-
-                Wait(5000)
-
-                local medicineHash = "consumable_pet_stimulant"
-                if Config.PetFeed[itemName]["medicineHash"] ~= nil then medicineHash = Config.PetFeed[itemName]["medicineHash"] end
-                -- TaskAnimalInteraction(PlayerPedId(), dogPed, -1355254781, GetHashKey(medicineHash), 0)
-
-                local valueHealth = Citizen.InvokeNative(0x36731AC041289BB1, dogPed, 0)
-
-                if not tonumber(valueHealth) then valueHealth = 0 end
-                Citizen.Wait(3500)
-                Citizen.InvokeNative(0xC6258F41D86676E0, dogPed, 0, valueHealth + Config.PetFeed[itemName]["health"])
-
-
-                Citizen.InvokeNative(0xF6A7C08DF2E28B28, dogPed, 0, 1000.0)
-                Citizen.InvokeNative(0xF6A7C08DF2E28B28, dogPed, 1, 1000.0)
-
-                Citizen.InvokeNative(0x50C803A4CD5932C5, true) --core
-                Citizen.InvokeNative(0xD4EE21B7CC7FD350, true) --core
-
-                PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
-            elseif Config.PetFeed[itemName]["ismedicine"] == false then
-                -- is not medicine
-                -- Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, -224471938, 0, 0) -- TaskAnimalInteraction
-                TaskTurnPedToFaceEntity(PlayerPedId(), dogPed, 5000)
-                TaskTurnPedToFaceEntity(dogPed, PlayerPedId(), 5000)
-                TaskStartScenarioInPlace(PlayerPedId(), GetHashKey('WORLD_HUMAN_CROUCH_INSPECT'), 60000, true, false, false, false)
-                Wait(2000)
-                DogEatAnimation()
-                Wait(4000)
-                ClearPedTasks(PlayerPedId())
-                Wait(4000)
-                ClearPedTasks(dogPed)
-                followOwner(dogPed, PlayerPedId(), false)
-
-                local petHealth = Citizen.InvokeNative(0x36731AC041289BB1, dogPed, 0)  -- GetAttributeCoreValue (Health)
-                local newHealth = petHealth + Config.PetFeed[itemName]["health"]
-
-                Citizen.InvokeNative(0xC6258F41D86676E0, dogPed, 0, newHealth)  -- SetAttributeCoreValue (Health)
-
-                PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
-            else
-                -- have invalid config
-                RSGCore.Functions.Notify("[FEED] Feed: " .. itemName .. " have INVALID ismedicine config!", 'error')
-            end
-        else
-            RSGCore.Functions.Notify("[FEED] Feed: " .. itemName .. " do not have ismedicine config!", 'error')
-        end
-    else
-        RSGCore.Functions.Notify("[FEED] Feed: " .. itemName .. " do not exits!", 'error')
-    end
-end)
-
--- player brush pet
-RegisterNetEvent('tbrp_companions:client:playerbrushpet')
-AddEventHandler('tbrp_companions:client:playerbrushpet', function(itemName)
-    local pcoords = GetEntityCoords(PlayerPedId())
-    local hcoords = GetEntityCoords(dogPed)
-
-    if #(pcoords - hcoords) > 2.0 then
-        RSGCore.Functions.Notify('need_to_be_closer', 'error')
-        return
-    end
-
-    local boneIndex = GetEntityBoneIndexByName(PlayerPedId(), "SKEL_R_Finger00")
-    local brushitem = CreateObject(`p_brushHorse02x`, pcoords.x, pcoords.y, pcoords.z, true, true, true)
-    AttachEntityToEntity(brushitem, PlayerPedId(), boneIndex, 0.06, -0.08, -0.03, -30.0, 0.0, 60.0, true, false, true, false, 0, true)
-
-    Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, `INTERACTION_DOG_PATTING`, 0, 0)
-
-    Wait(6000)
-
-    Citizen.InvokeNative(0xE3144B932DFDFF65, dogPed, 0.0, -1, 1, 1)
-    ClearPedEnvDirt(dogPed)
-    ClearPedDamageDecalByZone(dogPed, 10, "ALL")
-    ClearPedBloodDamage(dogPed)
-    Citizen.InvokeNative(0xD8544F6260F5F01E, dogPed, 10)
-    SetEntityAsNoLongerNeeded(brushitem)
-    DeleteEntity(brushitem)
-    PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
 end)
 
 local RequestControl = function(entity)
@@ -1274,6 +1185,108 @@ RegisterNetEvent('tbrp_companions:client:mypets', function()
     end)
 end)
 
+local function DogEatAnimation()
+	local waiting = 0
+	local dict = "amb_creature_mammal@world_dog_eating_ground@base"
+	RequestAnimDict(dict)
+	while not HasAnimDictLoaded(dict) do
+		waiting = waiting + 100
+		Citizen.Wait(100)
+		if waiting > 5000 then
+			RSGCore.Functions.Notify(Lang:t('info.petaway'), 'error', 3000)
+			break
+		end
+	end
+	TaskPlayAnim(dogPed, dict, "base", 1.0, 8.0, -1, 1, 0, false, false, false)
+end
+
+local function DogSitAnimation()
+	local waiting = 0
+	local dict = "amb_creature_mammal@world_dog_sitting@base"
+	RequestAnimDict(dict)
+	while not HasAnimDictLoaded(dict) do
+		waiting = waiting + 100
+		Citizen.Wait(100)
+		if waiting > 5000 then
+			RSGCore.Functions.Notify(Lang:t('error.brokeanim'), 'error', 3000)
+			break
+		end
+	end
+	TaskPlayAnim(dogPed, dict, "base", 1.0, 8.0, -1, 1, 0, false, false, false)
+end
+
+local function petStay(pet)
+	local coords = GetEntityCoords(pet)
+	ClearPedTasks(pet)
+	ClearPedSecondaryTask(pet)
+	DogSitAnimation()
+	FreezeEntityPosition(pet, true)
+end
+
+--------
+-- target pet
+--------
+
+local function AttackTarget(targetentity)
+	local retval, group = AddRelationshipGroup("attackedPeds") --We need to make a new group so the pet doesn't go haywire on other peds in the default group
+	SetPedRelationshipGroupHash(targetentity,group) --Setting the attacked target to be in the new group
+	SetRelationshipBetweenGroups(5, GetPedRelationshipGroupHash(dogPed), GetPedRelationshipGroupHash(targetentity))	--Setting the relationship of the pet to target at 5 (hated)
+	TaskCombatPed(dogPed, targetentity, 0, 16)
+end
+
+local function TrackTarget(targetentity)
+	TaskFollowToOffsetOfEntity(dogPed, targetentity, 0.0, -1.5, 0.0, 1.0, -1,  2 * 100000000, 1, 1, 0, 0, 1)
+	--TaskCombatPed(dogPed,targetentity,0,16)
+end
+
+local function ReturnKillToPlayer(fetchedKill, PlayerPedId)
+    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data)
+        if (data) then
+			local coords = GetEntityCoords(PlayerPedId)
+			TaskGoToCoordAnyMeans(dogPed, coords, 1.5, 0, 0, 786603, 0xbf800000)
+			while true do
+				Citizen.Wait(2000)
+				coords = GetEntityCoords(PlayerPedId)
+				local coords2 = GetEntityCoords(dogPed)
+				TaskGoToCoordAnyMeans(dogPed, coords, 1.5, 0, 0, 786603, 0xbf800000) --this might have been causing the pet to freeze up by calling it so much
+
+				if GetDistanceBetweenCoords(coords, coords2, true) <= 2.0 then
+					DetachEntity(fetchedObj)
+					Wait(100)
+					PlaceObjectOnGroundProperly(fetchedObj, true)
+					Retrieving = false
+					followOwner(dogPed, PlayerPedId)
+					break
+				end
+			end
+		end
+	end)
+end
+
+local function RetrieveKill(ClosestPed)
+	fetchedObj = ClosestPed
+	local ped = PlayerPedId()
+	local TaskedToMove = false
+	local coords = GetEntityCoords(fetchedObj)
+	TaskGoToCoordAnyMeans(dogPed, coords, 2.0, 0, 0, 786603, 0xbf800000)
+	Retrieving = true
+	print('Retrieve Kill')
+
+	while true do
+		Citizen.Wait(2000)
+		TaskGoToCoordAnyMeans(dogPed, coords, 2.0, 0, 0, 786603, 0xbf800000)
+		local petCoords = GetEntityCoords(dogPed)
+		coords = GetEntityCoords(fetchedObj)
+		if GetDistanceBetweenCoords(coords, petCoords, true) <= 2.5 then
+			--AttachEntityToEntity(fetchedObj, dogPed, GetPedBoneIndex(dogPed, 14285), 0.0, 0.0,0.09798, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+			AttachEntityToEntity(fetchedObj, dogPed, GetPedBoneIndex(dogPed, 21030), 0.14,0.14,0.09798, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+			RetrievedEntities[fetchedObj] = true
+			ReturnKillToPlayer(fetchedObj,ped)
+			break
+		end
+	end
+end
+
 RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPedmenu)
     RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetAllPets', function(results)
         if results ~= nil then
@@ -1452,16 +1465,245 @@ RegisterNetEvent('tbrp_companions:client:mypetsanimations', function(dogPedmenu)
     lib.showContext('show_mypetanimation_menu')
 end)
 
+
+--------------------
+-- INTERACTIONS ANIMAL 
+--------------------
+Citizen.CreateThread(function()
+    while true do
+        Wait(0)
+        local id = PlayerId()
+        if IsPlayerTargettingAnything(id) then
+            local result, entity = GetPlayerTargetEntity(id)
+            if PromptHasStandardModeCompleted(MenuPrompt[entity]) then
+			    TriggerEvent("tbrp_companions:client:mypets")
+				Wait(2000)
+            end
+            if PromptHasStandardModeCompleted(ActionsPrompt[entity]) then
+			    TriggerEvent("tbrp_companions:client:mypetsactions", dogPed)
+				Wait(2000)
+            end
+			if PromptHasStandardModeCompleted(AttackPrompt[entity]) then
+				AttackTarget(entity)
+			end
+			if PromptHasStandardModeCompleted(TrackPrompt[entity]) then
+				TrackTarget(entity)
+			end
+			if Config.AttackCommand and dogPed then
+				if not AddedAttackPrompt[entity] and entity ~= dogPed then
+					if entity ~= dogPed then
+						 if Config.AttackOnly.Animals and GetPedType(entity) == 28 then
+							AddAttackPrompts(entity)
+							AddedAttackPrompt[entity] = true
+
+						elseif Config.AttackOnly.NPC and not IsPedAPlayer(entity) then
+							AddAttackPrompts(entity)
+							AddedAttackPrompt[entity] = true
+
+						elseif Config.AttackOnly.Players and IsPedAPlayer(entity) then
+							AddAttackPrompts(entity)
+							AddedAttackPrompt[entity] = true
+
+						elseif not Config.AttackOnly.Animals and not Config.AttackOnly.NPC and not Config.AttackOnly.Players then
+							AddAttackPrompts(entity)
+							AddedAttackPrompt[entity] = true
+
+						end
+					end
+				end
+			end
+			if Config.TrackCommand and dogPed then
+				if not AddedTrackPrompt[entity] and entity ~= dogPed then
+					if entity ~= dogPed then
+						 if Config.TrackOnly.Animals and GetPedType(entity) == 28 then
+							AddTrackPrompts(entity)
+							AddedTrackPrompt[entity] = true
+
+						elseif Config.TrackOnly.NPC and not IsPedAPlayer(entity) then
+							AddTrackPrompts(entity)
+							AddedTrackPrompt[entity] = true
+
+						elseif Config.TrackOnly.Players and IsPedAPlayer(entity) then
+							AddTrackPrompts(entity)
+							AddedTrackPrompt[entity] = true
+
+						elseif not Config.TrackOnly.Animals and not Config.TrackOnly.NPC and not Config.TrackOnly.Players then
+							AddTrackPrompts(entity)
+							AddedTrackPrompt[entity] = true
+					
+						end
+					end				
+				end
+			end
+		else
+		Wait(500)
+        end
+    end
+end)
+
+-- player feed pet
+RegisterNetEvent('tbrp_companions:client:playerfeedpet')
+AddEventHandler('tbrp_companions:client:playerfeedpet', function(itemName)
+    local pcoords = GetEntityCoords(PlayerPedId())
+    local hcoords = GetEntityCoords(dogPed)
+
+    if #(pcoords - hcoords) > 2.0 then
+        RSGCore.Functions.Notify('need to be closer', 'error')
+        return
+    end
+
+    if Config.PetFeed[itemName] ~= nil then
+        if Config.PetFeed[itemName]["ismedicine"] ~= nil then
+            if Config.PetFeed[itemName]["ismedicine"] == true then
+                -- is medicine
+                Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, -1355254781, 0, 0) -- TaskAnimalInteraction
+
+                Wait(5000)
+
+                local medicineHash = "consumable_pet_stimulant"
+                if Config.PetFeed[itemName]["medicineHash"] ~= nil then medicineHash = Config.PetFeed[itemName]["medicineHash"] end
+                -- TaskAnimalInteraction(PlayerPedId(), dogPed, -1355254781, GetHashKey(medicineHash), 0)
+
+                local valueHealth = Citizen.InvokeNative(0x36731AC041289BB1, dogPed, 0)
+
+                if not tonumber(valueHealth) then valueHealth = 0 end
+                Citizen.Wait(3500)
+                Citizen.InvokeNative(0xC6258F41D86676E0, dogPed, 0, valueHealth + Config.PetFeed[itemName]["health"])
+
+
+                Citizen.InvokeNative(0xF6A7C08DF2E28B28, dogPed, 0, 1000.0)
+                Citizen.InvokeNative(0xF6A7C08DF2E28B28, dogPed, 1, 1000.0)
+
+                Citizen.InvokeNative(0x50C803A4CD5932C5, true) --core
+                Citizen.InvokeNative(0xD4EE21B7CC7FD350, true) --core
+
+                PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
+            elseif Config.PetFeed[itemName]["ismedicine"] == false then
+                -- is not medicine
+                -- Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, -224471938, 0, 0) -- TaskAnimalInteraction
+                TaskTurnPedToFaceEntity(PlayerPedId(), dogPed, 5000)
+                TaskTurnPedToFaceEntity(dogPed, PlayerPedId(), 5000)
+                TaskStartScenarioInPlace(PlayerPedId(), GetHashKey('WORLD_HUMAN_CROUCH_INSPECT'), 60000, true, false, false, false)
+                Wait(2000)
+                DogEatAnimation()
+                Wait(4000)
+                ClearPedTasks(PlayerPedId())
+                Wait(4000)
+                ClearPedTasks(dogPed)
+                followOwner(dogPed, PlayerPedId(), false)
+
+                local petHealth = Citizen.InvokeNative(0x36731AC041289BB1, dogPed, 0)  -- GetAttributeCoreValue (Health)
+                local newHealth = petHealth + Config.PetFeed[itemName]["health"]
+
+                Citizen.InvokeNative(0xC6258F41D86676E0, dogPed, 0, newHealth)  -- SetAttributeCoreValue (Health)
+
+                PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
+            else
+                -- have invalid config
+                RSGCore.Functions.Notify("[FEED] Feed: " .. itemName .. " have INVALID ismedicine config!", 'error')
+            end
+        else
+            RSGCore.Functions.Notify("[FEED] Feed: " .. itemName .. " do not have ismedicine config!", 'error')
+        end
+    else
+        RSGCore.Functions.Notify("[FEED] Feed: " .. itemName .. " do not exits!", 'error')
+    end
+end)
+
+-- player brush pet
+RegisterNetEvent('tbrp_companions:client:playerbrushpet')
+AddEventHandler('tbrp_companions:client:playerbrushpet', function(itemName)
+    local pcoords = GetEntityCoords(PlayerPedId())
+    local hcoords = GetEntityCoords(dogPed)
+
+    if #(pcoords - hcoords) > 2.0 then
+        RSGCore.Functions.Notify('need_to_be_closer', 'error')
+        return
+    end
+
+    local boneIndex = GetEntityBoneIndexByName(PlayerPedId(), "SKEL_R_Finger00")
+    local brushitem = CreateObject(`p_brushHorse02x`, pcoords.x, pcoords.y, pcoords.z, true, true, true)
+    AttachEntityToEntity(brushitem, PlayerPedId(), boneIndex, 0.06, -0.08, -0.03, -30.0, 0.0, 60.0, true, false, true, false, 0, true)
+
+    Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, `INTERACTION_DOG_PATTING`, 0, 0)
+
+    Wait(6000)
+
+    Citizen.InvokeNative(0xE3144B932DFDFF65, dogPed, 0.0, -1, 1, 1)
+    ClearPedEnvDirt(dogPed)
+    ClearPedDamageDecalByZone(dogPed, 10, "ALL")
+    ClearPedBloodDamage(dogPed)
+    Citizen.InvokeNative(0xD8544F6260F5F01E, dogPed, 10)
+    SetEntityAsNoLongerNeeded(brushitem)
+    DeleteEntity(brushitem)
+    PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
+end)
+
 ----------------------------
+
 ----------------------------
-----------------------------
-----------------------------
-----------------------------
-----------------------------
-----------------------------
-----------------------------
-----------------------------
-----------------------------
+
+local function GetClosestAnimalPed(playerPed, radius)
+	local playerCoords = GetEntityCoords(playerPed)
+	local itemset = CreateItemset(true)
+	local size = Citizen.InvokeNative(0x59B57C4B06531E1E, playerCoords, radius, itemset, 1, Citizen.ResultAsInteger())
+	local closestPed
+	local minDist = radius
+
+	if size > 0 then
+		for i = 0, size - 1 do
+			local ped = GetIndexedItemInItemset(i, itemset)
+			if playerPed ~= ped then
+				local pedType = GetPedType(ped)
+				local model = GetEntityModel(ped)
+				if pedType == 28 and IsEntityDead(ped) and not RetrievedEntities[ped] and Config.Animals[model] then
+					local pedCoords = GetEntityCoords(ped)
+					local distance = #(playerCoords - pedCoords)
+					if distance < minDist then
+						closestPed = ped
+						minDist = distance
+					end
+				end
+			end
+		end
+	end
+
+	if IsItemsetValid(itemset) then
+		DestroyItemset(itemset)
+	end
+
+	return closestPed
+end
+
+local function GetClosestFightingPed(playerPed, radius)
+	local playerCoords = GetEntityCoords(playerPed)
+	local itemset = CreateItemset(true)
+	local size = Citizen.InvokeNative(0x59B57C4B06531E1E, playerCoords, radius, itemset, 1, Citizen.ResultAsInteger())
+	local closestPed
+	local minDist = radius
+
+	if size > 0 then
+		for i = 0, size - 1 do
+			local ped = GetIndexedItemInItemset(i, itemset)
+			if playerPed ~= ped and playerPed ~= dogPed then
+				local pedType = GetPedType(ped)
+				local model = GetEntityModel(ped)
+				local pedCoords = GetEntityCoords(ped)
+				local distance = #(playerCoords - pedCoords)
+				if IsPedInCombat(playerPed, ped) then
+					closestPed = ped
+					minDist = distance
+				end
+			end
+		end
+	end
+
+	if IsItemsetValid(itemset) then
+		DestroyItemset(itemset)
+	end
+
+	return closestPed
+end
 
 --------------------------------------
 -- Main Thread - Checks if animal can hunt or is hungry, checks timers, etc.
@@ -1560,191 +1802,9 @@ end)
 -- 	end
 -- end)
 
---------------------
--- INTERACTIONS ANIMAL 
---------------------
-Citizen.CreateThread(function()
-    while true do
-        Wait(0)
-        local id = PlayerId()
-        if IsPlayerTargettingAnything(id) then
-            local result, entity = GetPlayerTargetEntity(id)
-            if PromptHasStandardModeCompleted(MenuPrompt[entity]) then
-			    TriggerEvent("tbrp_companions:client:mypets")
-				Wait(2000)
-            end
-            if PromptHasStandardModeCompleted(ActionsPrompt[entity]) then
-			    TriggerEvent("tbrp_companions:client:mypetsactions", dogPed)
-				Wait(2000)
-            end
-			if PromptHasStandardModeCompleted(AttackPrompt[entity]) then
-				AttackTarget(entity)
-			end
-			if PromptHasStandardModeCompleted(TrackPrompt[entity]) then
-				TrackTarget(entity)
-			end
-			if Config.AttackCommand and dogPed then
-				if not AddedAttackPrompt[entity] and entity ~= dogPed then
-					if entity ~= dogPed then
-						 if Config.AttackOnly.Animals and GetPedType(entity) == 28 then
-							AddAttackPrompts(entity)
-							AddedAttackPrompt[entity] = true
-
-						elseif Config.AttackOnly.NPC and not IsPedAPlayer(entity) then
-							AddAttackPrompts(entity)
-							AddedAttackPrompt[entity] = true
-
-						elseif Config.AttackOnly.Players and IsPedAPlayer(entity) then
-							AddAttackPrompts(entity)
-							AddedAttackPrompt[entity] = true
-
-						elseif not Config.AttackOnly.Animals and not Config.AttackOnly.NPC and not Config.AttackOnly.Players then
-							AddAttackPrompts(entity)
-							AddedAttackPrompt[entity] = true
-
-						end
-					end
-				end
-			end
-			if Config.TrackCommand and dogPed then
-				if not AddedTrackPrompt[entity] and entity ~= dogPed then
-					if entity ~= dogPed then
-						 if Config.TrackOnly.Animals and GetPedType(entity) == 28 then
-							AddTrackPrompts(entity)
-							AddedTrackPrompt[entity] = true
-
-						elseif Config.TrackOnly.NPC and not IsPedAPlayer(entity) then
-							AddTrackPrompts(entity)
-							AddedTrackPrompt[entity] = true
-
-						elseif Config.TrackOnly.Players and IsPedAPlayer(entity) then
-							AddTrackPrompts(entity)
-							AddedTrackPrompt[entity] = true
-
-						elseif not Config.TrackOnly.Animals and not Config.TrackOnly.NPC and not Config.TrackOnly.Players then
-							AddTrackPrompts(entity)
-							AddedTrackPrompt[entity] = true
-					
-						end
-					end				
-				end
-			end
-		else
-		Wait(500)
-        end
-    end
-end)
-
-function DogEatAnimation()
-	local waiting = 0
-	local dict = "amb_creature_mammal@world_dog_eating_ground@base"
-	RequestAnimDict(dict)
-	while not HasAnimDictLoaded(dict) do
-		waiting = waiting + 100
-		Citizen.Wait(100)
-		if waiting > 5000 then
-			RSGCore.Functions.Notify(Lang:t('info.petaway'), 'error', 3000)
-			break
-		end
-	end
-	TaskPlayAnim(dogPed, dict, "base", 1.0, 8.0, -1, 1, 0, false, false, false)
-end
-
-function DogSitAnimation()
-	local waiting = 0
-	local dict = "amb_creature_mammal@world_dog_sitting@base"
-	RequestAnimDict(dict)
-	while not HasAnimDictLoaded(dict) do
-		waiting = waiting + 100
-		Citizen.Wait(100)
-		if waiting > 5000 then
-			RSGCore.Functions.Notify(Lang:t('error.brokeanim'), 'error', 3000)
-			break
-		end
-	end
-	TaskPlayAnim(dogPed, dict, "base", 1.0, 8.0, -1, 1, 0, false, false, false)
-end
-
---------
--- target pet
---------
-
-function AttackTarget(targetentity)
-	local retval, group = AddRelationshipGroup("attackedPeds") --We need to make a new group so the pet doesn't go haywire on other peds in the default group
-	SetPedRelationshipGroupHash(targetentity,group) --Setting the attacked target to be in the new group
-	SetRelationshipBetweenGroups(5, GetPedRelationshipGroupHash(dogPed), GetPedRelationshipGroupHash(targetentity))	--Setting the relationship of the pet to target at 5 (hated)
-	TaskCombatPed(dogPed, targetentity, 0, 16)
-end
-
-function TrackTarget(targetentity)
-	TaskFollowToOffsetOfEntity(dogPed, targetentity, 0.0, -1.5, 0.0, 1.0, -1,  2 * 100000000, 1, 1, 0, 0, 1)
-	--TaskCombatPed(dogPed,targetentity,0,16)
-end
-
-function RetrieveKill(ClosestPed)
-	fetchedObj = ClosestPed
-	local ped = PlayerPedId()
-	local TaskedToMove = false
-	local coords = GetEntityCoords(fetchedObj)
-	TaskGoToCoordAnyMeans(dogPed, coords, 2.0, 0, 0, 786603, 0xbf800000)
-	Retrieving = true
-	print('Retrieve Kill')
-
-	while true do
-		Citizen.Wait(2000)
-		TaskGoToCoordAnyMeans(dogPed, coords, 2.0, 0, 0, 786603, 0xbf800000)
-		local petCoords = GetEntityCoords(dogPed)
-		coords = GetEntityCoords(fetchedObj)
-		if GetDistanceBetweenCoords(coords, petCoords, true) <= 2.5 then
-			--AttachEntityToEntity(fetchedObj, dogPed, GetPedBoneIndex(dogPed, 14285), 0.0, 0.0,0.09798, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
-			AttachEntityToEntity(fetchedObj, dogPed, GetPedBoneIndex(dogPed, 21030), 0.14,0.14,0.09798, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
-			RetrievedEntities[fetchedObj] = true
-			ReturnKillToPlayer(fetchedObj,ped)
-			break
-		end
-	end
-
-end
-
-function followOwner(pet, PlayerPedId)
-	FreezeEntityPosition(pet, false)
-	ClearPedTasks(pet)
-	ClearPedSecondaryTask(pet)
-	TaskFollowToOffsetOfEntity(pet, PlayerPedId, 0.0, -1.5, 0.0, 1.0, -1,  Config.PetAttributes.FollowDistance * 100000000, 1, 1, 0, 0, 1)
-end
-
-function petStay(pet)
-	local coords = GetEntityCoords(pet)
-	ClearPedTasks(pet)
-	ClearPedSecondaryTask(pet)
-	DogSitAnimation()
-	FreezeEntityPosition(pet, true)
-end
-
-function ReturnKillToPlayer(fetchedKill, PlayerPedId)
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data)
-        if (data) then
-			local coords = GetEntityCoords(PlayerPedId)
-			TaskGoToCoordAnyMeans(dogPed, coords, 1.5, 0, 0, 786603, 0xbf800000)
-			while true do
-				Citizen.Wait(2000)
-				coords = GetEntityCoords(PlayerPedId)
-				local coords2 = GetEntityCoords(dogPed)
-				TaskGoToCoordAnyMeans(dogPed, coords, 1.5, 0, 0, 786603, 0xbf800000) --this might have been causing the pet to freeze up by calling it so much
-
-				if GetDistanceBetweenCoords(coords, coords2, true) <= 2.0 then
-					DetachEntity(fetchedObj)
-					Wait(100)
-					PlaceObjectOnGroundProperly(fetchedObj, true)
-					Retrieving = false
-					followOwner(dogPed, PlayerPedId)
-					break
-				end
-			end
-		end
-	end)
-end
-
+------------------
+-- spawnPet compare old code
+------------------
 -- function spawnAnimal(model, player, x, y, z, h, skin, PlayerPedId, isdead, isshop, xp)
 -- 	local EntityPedCoord = GetEntityCoords( player )
 -- 	local EntitydogCoord = GetEntityCoords( dogPed )
@@ -1886,68 +1946,6 @@ end)
 --------------------------------------
 -- function
 --------------------------------------
-
-function GetClosestAnimalPed(playerPed, radius)
-	local playerCoords = GetEntityCoords(playerPed)
-	local itemset = CreateItemset(true)
-	local size = Citizen.InvokeNative(0x59B57C4B06531E1E, playerCoords, radius, itemset, 1, Citizen.ResultAsInteger())
-	local closestPed
-	local minDist = radius
-
-	if size > 0 then
-		for i = 0, size - 1 do
-			local ped = GetIndexedItemInItemset(i, itemset)
-			if playerPed ~= ped then
-				local pedType = GetPedType(ped)
-				local model = GetEntityModel(ped)
-				if pedType == 28 and IsEntityDead(ped) and not RetrievedEntities[ped] and Config.Animals[model] then
-					local pedCoords = GetEntityCoords(ped)
-					local distance = #(playerCoords - pedCoords)
-					if distance < minDist then
-						closestPed = ped
-						minDist = distance
-					end
-				end
-			end
-		end
-	end
-
-	if IsItemsetValid(itemset) then
-		DestroyItemset(itemset)
-	end
-
-	return closestPed
-end
-
-function GetClosestFightingPed(playerPed, radius)
-	local playerCoords = GetEntityCoords(playerPed)
-	local itemset = CreateItemset(true)
-	local size = Citizen.InvokeNative(0x59B57C4B06531E1E, playerCoords, radius, itemset, 1, Citizen.ResultAsInteger())
-	local closestPed
-	local minDist = radius
-
-	if size > 0 then
-		for i = 0, size - 1 do
-			local ped = GetIndexedItemInItemset(i, itemset)
-			if playerPed ~= ped and playerPed ~= dogPed then
-				local pedType = GetPedType(ped)
-				local model = GetEntityModel(ped)
-				local pedCoords = GetEntityCoords(ped)
-				local distance = #(playerCoords - pedCoords)
-				if IsPedInCombat(playerPed, ped) then
-					closestPed = ped
-					minDist = distance
-				end
-			end
-		end
-	end
-
-	if IsItemsetValid(itemset) then
-		DestroyItemset(itemset)
-	end
-
-	return closestPed
-end
 
 function SecondsToClock(seconds)
 	local seconds = tonumber(seconds)
