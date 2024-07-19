@@ -1301,41 +1301,12 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPedmenu)
                     }
                     options[#options + 1] = {
                         title = 'Follow',
-                        icon = 'fa-solid fa-share',
+                        icon = 'fa-solid fa-person',
                         onSelect = function()
                             followOwner(dogPedmenu, PlayerPedId())
                         end,
                         arrow = true
                     }
-                    options[#options + 1] = {
-                        title = 'Carry',
-                        icon = 'fa-solid fa-share',
-                        onSelect = function()
-                        end,
-                        arrow = true
-                    }
-                    options[#options + 1] = {
-                        title = 'Take snoulder',
-                        icon = 'fa-solid fa-share',
-                        onSelect = function()
-                        end,
-                        arrow = true
-                    }
-                    options[#options + 1] = {
-                        title = 'Animations',
-                        icon = 'fa-solid fa-share',
-                        onSelect = function()
-                            TriggerEvent('tbrp_companions:client:mypetsanimations', dogPedmenu)
-                        end,
-                        arrow = true
-                    }
-                    -- options[#options + 1] = {
-                    --     title = 'Acariciar',
-                    --     icon = 'fa-solid fa-horse',
-                    --     onSelect = function()
-                    --     end,
-                    --     arrow = true
-                    -- }
                     options[#options + 1] = {
                         title = 'Stay',
                         icon = 'fa-solid fa-location-dot',
@@ -1344,6 +1315,29 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPedmenu)
                         end,
                         arrow = true
                     }
+                    -- options[#options + 1] = {
+                    --     title = 'Carry',
+                    --     icon = 'fa-solid fa-share',
+                    --     onSelect = function()
+                    --     end,
+                    --     arrow = true
+                    -- }
+                    -- options[#options + 1] = {
+                    --     title = 'Take snoulder',
+                    --     icon = 'fa-solid fa-share',
+                    --     onSelect = function()
+                    --     end,
+                    --     arrow = true
+                    -- }
+                    options[#options + 1] = {
+                        title = 'Animations',
+                        icon = 'fa-solid fa-share',
+                        onSelect = function()
+                            TriggerEvent('tbrp_companions:client:mypetsanimations', dogPedmenu)
+                        end,
+                        arrow = true
+                    }
+                    
                     options[#options + 1] = {
                         title = 'Hunt Mode ON/OFF',
                         icon = 'fa-solid fa-toggle-on',
@@ -1355,6 +1349,14 @@ RegisterNetEvent('tbrp_companions:client:mypetsactions', function(dogPedmenu)
                                 HuntMode = false
                                 RSGCore.Functions.Notify(Lang:t('error.notretrieve'), 'error', 3000)
                             end
+                        end,
+                        arrow = true
+                    }
+                    options[#options + 1] = {
+                        title = 'Comercio/Intercambio',
+                        icon = 'fa-solid fa-horse',
+                        onSelect = function()
+                            TriggerEvent('tbrp_companions:client:tradepet')
                         end,
                         arrow = true
                     }
