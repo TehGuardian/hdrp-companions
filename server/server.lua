@@ -711,7 +711,7 @@ lib.cron.new(Config.CronupkeepJob, function ()
 
     for _, pet in pairs(result) do
         -- Asegurarse de que todos los campos necesarios están presentes
-        if not pet.id or not pet.citizenid or not pet.dogid or not pet.born or not pet.active then
+        if not pet.id or not pet.dogid or not pet.born or not pet.active == nil then
             if Config.CycleNotify then
                 print('Invalid data for pet:', pet)
             end
@@ -731,20 +731,16 @@ lib.cron.new(Config.CronupkeepJob, function ()
         local currentTime = os.time()
         local timeDifference = currentTime - pet.born
         local daysPassed = math.floor(timeDifference / (24 * 60 * 60))
+
         local updated = false
-
-        -- Lógica de actualización de estadísticas
-        live, hunger, thirst, growth, happiness, dirt, updated = updatePetStats( live, hunger, thirst, growth, happiness, dirt)
-
-        if updated then
-            local activepet = MySQL.scalar.await( 'SELECT id FROM tbrp_companions WHERE dogid = ? AND active = ?', {petid, true})
-            if activepet then
-                MySQL.update( 'UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ? WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet})
+        if pet.active then
+            live, hunger, thirst, growth, happiness, dirt, updated = updatePetStats( live, hunger, thirst, growth, happiness, dirt)
+            if updated then
+                MySQL.update( 'UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ? WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, true})
             end
         end
 
-        -- Manejo de la muerte de la mascota
-        handlePetDeath(pet, daysPassed, id, owner, petid, petname)
+        handlePetDeath(pet, daysPassed, id, owner, petid, petname)        -- Manejo de la muerte de la mascota
 
         ::continue::
     end
