@@ -346,6 +346,9 @@ RegisterServerEvent('tbrp_companions:server:brushpet', function(item)
             happiness = 100
             local dirt = 0.0
             MySQL.update("UPDATE tbrp_companions SET dirt = ?, happiness = ?, dogxp = ?  WHERE id = ? AND citizenid = ?", { dirt, happiness, xppet + Config.XpPerClean, activepet, Player.PlayerData.citizenid})
+        else
+            local dirt = 0.0
+            MySQL.update("UPDATE tbrp_companions SET dirt = ?, happiness = ?, dogxp = ?  WHERE id = ? AND citizenid = ?", { dirt, happiness, xppet + Config.XpPerClean, activepet, Player.PlayerData.citizenid})
         end
     else
         TriggerClientEvent('RSGCore:Notify', src, "You don't have "..item, 'error')
