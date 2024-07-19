@@ -456,246 +456,462 @@ end)
 -- timer
 ------------------------------------------
 
-lib.cron.new(Config.CronupkeepJob, function ()
+-- lib.cron.new(Config.CronupkeepJob, function ()
 
+--     local result = MySQL.query.await('SELECT * FROM tbrp_companions')
+--     if not result then
+--         if Config.CycleNotify then
+--             print('No results from database query')
+--         end
+--         return
+--     end
+
+--     for i = 1, #result do -- problem with i = 1 table take id = 1  instead of taking all the results
+
+--         local id = result[i].id
+--         local petname = result[i].name
+--         local petid = result[i].dogid
+--         local owner = result[i].citizenid
+--         local live = result[i].live
+--         local hunger = result[i].hunger
+--         local thirst = result[i].thirst
+--         local growth = result[i].growth
+--         local happiness = result[i].happiness
+--         local dirt = result[i].dirt
+--         local currentTime = os.time()
+--         local timeDifference = currentTime - result[i].born
+--         local daysPassed = math.floor(timeDifference / (24 * 60 * 60))
+--         local updated = false
+
+--         if growth < 100 then
+--             if live > 0 then
+--                 thirst = thirst - 1
+--                 hunger = hunger - 1
+--                 growth = growth + 1
+
+--                 if thirst < 75 or hunger < 75 then
+--                     happiness = happiness - 1
+--                 end
+
+--                 if thirst < 25 or hunger < 25 then
+--                     live = live - 1
+--                     thirst = thirst - 1
+--                     hunger = hunger - 1
+--                     happiness = happiness - 1
+--                 end
+
+--                 if thirst == 0 and hunger > 0 then
+--                     live = live - 1
+--                     hunger = hunger - 1
+--                     happiness = happiness - 1
+--                 end
+
+--                 if hunger == 0 and thirst > 0 then
+--                     live = live - 1
+--                     thirst = thirst - 1
+--                     happiness = happiness - 1
+--                 end
+
+--                 if hunger == 0 and thirst == 0 then
+--                     live = live - 1
+--                     happiness = happiness - 1
+--                 end
+
+--                 if dirt > 75 then
+--                     live = live - 2
+--                     happiness = happiness - 1
+--                 end
+
+--                 if dirt > 50 then
+--                     happiness = happiness - 1
+--                 end
+
+--                 if hunger < 0 then hunger = 0 end
+--                 if thirst < 0 then thirst = 0 end
+--                 if dirt <= 0 then dirt = 0 end
+--                 if dirt >= 100 then dirt = 100 end
+--                 if growth >= 100 then growth = 100 end
+--                 if happiness < 0 then happiness = 0 end
+
+--                 updated = true
+
+--                 if updated then
+--                     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+--                     MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet })
+--                 end
+--                 updated = false
+--             else
+--                 if live <= 0 then live = 0 end
+--                 if hunger > 0 then hunger = 0 end
+--                 if thirst > 0 then thirst = 0 end
+--                 if dirt < 100 then dirt = 100 end
+--                 if happiness > 0 then happiness = 0 end
+
+--                 updated = true
+
+--                 if updated then
+--                     if daysPassed == Config.PetDieAge then
+--                         -- delete pet
+--                         MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
+
+--                         local discordMessage = string.format(
+--                             "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died of old age!**",
+--                             owner,
+--                             petid,
+--                             petname
+--                         )
+
+--                         sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+
+--                         -- telegram message to the pet owner
+--                         MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
+--                         {   owner,
+--                             'Pet Owner',
+--                             '22222222',
+--                             'Pet Stables',
+--                             petname..' passed away',
+--                             os.date("%x"),
+--                             'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
+--                         })
+--                     else
+--                         local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+--                         MySQL.update('UPDATE tbrp_companions SET live = ?, hunger = ?, thirst = ?, dirt = ?, happiness = ?, WHERE dogid = ? AND active = ?', {live, hunger, thirst, dirt, happiness, petid, activepet })
+
+--                         local discordMessage = string.format(
+--                             "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died for a bad master!**",
+--                             owner,
+--                             petid,
+--                             petname
+--                         )
+
+--                         sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+--                     end
+--                 end
+--                 updated = false
+--             end
+--         else -- growth >= 100
+--             if live > 0 then
+--                 thirst = thirst - 1
+--                 hunger = hunger - 1
+
+--                 if thirst < 75 or hunger < 75 then
+--                     happiness = happiness - 1
+--                 end
+
+--                 if thirst < 25 or hunger < 25 then
+--                     live = live - 1
+--                     thirst = thirst - 1
+--                     hunger = hunger - 1
+--                     happiness = happiness - 1
+--                 end
+
+--                 if thirst == 0 and hunger > 0 then
+--                     live = live - 1
+--                     hunger = hunger - 1
+--                     happiness = happiness - 1
+--                 end
+
+--                 if hunger == 0 and thirst > 0 then
+--                     live = live - 1
+--                     thirst = thirst - 1
+--                     happiness = happiness - 1
+--                 end
+
+--                 if hunger == 0 and thirst == 0 then
+--                     live = live - 1
+--                 end
+
+--                 if dirt > 75 then
+--                     live = live - 2
+--                     happiness = happiness - 1
+--                 end
+
+--                 if dirt > 50 then
+--                     happiness = happiness - 1
+--                 end
+
+--                 if hunger <= 0 then hunger = 0 end
+--                 if thirst <= 0 then thirst = 0 end
+--                 if dirt <= 0 then dirt = 0 end
+--                 if dirt >= 100 then dirt = 100 end
+--                 if happiness <= 0 then happiness = 0 end
+
+--                 updated = true
+
+--                 if updated then
+--                     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+--                     MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, happiness, petid, activepet })
+--                 end
+--                 updated = false
+--             else
+--                 if live <= 0 then live = 0 end
+--                 if hunger > 0 then hunger = 0 end
+--                 if thirst > 0 then thirst = 0 end
+--                 if dirt < 100 then dirt = 100 end
+--                 if happiness > 0 then happiness = 0 end
+
+--                 updated = true
+
+--                 if updated then
+--                     if daysPassed == Config.PetDieAge then
+--                         -- delete pet
+--                         MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
+
+--                         local discordMessage = string.format(
+--                             "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died of old age!**",
+--                             owner,
+--                             petid,
+--                             petname
+--                         )
+
+--                         sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+
+--                         -- telegram message to the pet owner
+--                         MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
+--                         {   owner,
+--                             'Pet Owner',
+--                             '22222222',
+--                             'Pet Stables',
+--                             petname..' passed away',
+--                             os.date("%x"),
+--                             'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
+--                         })
+--                     else
+--                         local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
+--                         MySQL.update('UPDATE tbrp_companions SET live = ?, hunger = ?, thirst = ?, dirt = ?, happiness = ?, WHERE dogid = ? AND active = ?', {live, hunger, thirst, dirt, happiness, petid, activepet })
+
+--                         local discordMessage = string.format(
+--                             "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died for a bad master!**",
+--                             owner,
+--                             petid,
+--                             petname
+--                         )
+
+--                         sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+--                     end
+--                 end
+--                 updated = false
+--             end
+--         end
+
+--     end
+
+--     ::continue::
+
+--     if Config.CycleNotify then print('pet stats check complete') end
+-- end)
+lib.cron.new(Config.CronupkeepJob, function ()
     local result = MySQL.query.await('SELECT * FROM tbrp_companions')
-    if not result then
+    if not result or #result == 0 then
         if Config.CycleNotify then
             print('No results from database query')
         end
         return
     end
 
-    for i = 1, #result do
+    for _, pet in pairs(result) do
+        -- Asegurarse de que todos los campos necesarios están presentes
+        if not pet.id or not pet.citizenid or not pet.dogid or not pet.born or not pet.active then
+            if Config.CycleNotify then
+                print('Invalid data for pet:', pet)
+            end
+            goto continue
+        end
 
-        local id = result[i].id
-        local petname = result[i].name
-        local petid = result[i].dogid
-        local owner = result[i].citizenid
-        local live = result[i].live
-        local hunger = result[i].hunger
-        local thirst = result[i].thirst
-        local growth = result[i].growth
-        local happiness = result[i].happiness
-        local dirt = result[i].dirt
+        local id = pet.id
+        local petname = pet.name
+        local petid = pet.dogid
+        local owner = pet.citizenid
+        local live = pet.live or 0
+        local hunger = pet.hunger or 0
+        local thirst = pet.thirst or 0
+        local growth = pet.growth or 0
+        local happiness = pet.happiness or 0
+        local dirt = pet.dirt or 0
         local currentTime = os.time()
-        local timeDifference = currentTime - result[i].born
+        local timeDifference = currentTime - pet.born
         local daysPassed = math.floor(timeDifference / (24 * 60 * 60))
         local updated = false
 
-            if growth < 100 then
-                if live > 0 then
-                    thirst = thirst - 1
-                    hunger = hunger - 1
-                    growth = growth + 1
+        -- Lógica de actualización de estadísticas
+        live, hunger, thirst, growth, happiness, dirt, updated = updatePetStats( live, hunger, thirst, growth, happiness, dirt)
 
-                    if thirst < 75 or hunger < 75 then
-                        happiness = happiness - 1
-                    end
-
-                    if thirst < 25 or hunger < 25 then
-                        live = live - 1
-                        thirst = thirst - 1
-                        hunger = hunger - 1
-                        happiness = happiness - 1
-                    end
-
-                    if thirst == 0 and hunger > 0 then
-                        live = live - 1
-                        hunger = hunger - 1
-                        happiness = happiness - 1
-                    end
-
-                    if hunger == 0 and thirst > 0 then
-                        live = live - 1
-                        thirst = thirst - 1
-                        happiness = happiness - 1
-                    end
-
-                    if hunger == 0 and thirst == 0 then
-                        live = live - 1
-                        happiness = happiness - 1
-                    end
-
-                    if dirt > 75 then
-                        live = live - 2
-                        happiness = happiness - 1
-                    end
-
-                    if dirt > 50 then
-                        happiness = happiness - 1
-                    end
-
-                    if hunger < 0 then hunger = 0 end
-                    if thirst < 0 then thirst = 0 end
-                    if dirt <= 0 then dirt = 0 end
-                    if dirt >= 100 then dirt = 100 end
-                    if growth >= 100 then growth = 100 end
-                    if happiness < 0 then happiness = 0 end
-
-                    updated = true
-
-                    if updated then
-                        local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                        MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet })
-                    end
-                else
-                    if live <= 0 then live = 0 end
-                    if hunger > 0 then hunger = 0 end
-                    if thirst > 0 then thirst = 0 end
-                    if dirt < 100 then dirt = 100 end
-                    if happiness > 0 then happiness = 0 end
-
-                    updated = true
-
-                    if updated then
-                        if daysPassed == Config.PetDieAge then
-                            -- delete pet
-                            MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
-
-                            local discordMessage = string.format(
-                                "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died of old age!**",
-                                owner,
-                                petid,
-                                petname
-                            )
-
-                            sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
-
-                            -- telegram message to the pet owner
-                            MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                            {   owner,
-                                'Pet Owner',
-                                '22222222',
-                                'Pet Stables',
-                                petname..' passed away',
-                                os.date("%x"),
-                                'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
-                            })
-                        else
-                            local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                            MySQL.update('UPDATE tbrp_companions SET live = ?, hunger = ?, thirst = ?, dirt = ?, happiness = ?, WHERE dogid = ? AND active = ?', {live, hunger, thirst, dirt, happiness, petid, activepet })
-
-                            local discordMessage = string.format(
-                                "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died for a bad master!**",
-                                owner,
-                                petid,
-                                petname
-                            )
-
-                            sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
-                        end
-                    end
-                end
-            else -- growth >= 100
-                if live > 0 then
-                    thirst = thirst - 1
-                    hunger = hunger - 1
-
-                    if thirst < 75 or hunger < 75 then
-                        happiness = happiness - 1
-                    end
-
-                    if thirst < 25 or hunger < 25 then
-                        live = live - 1
-                        thirst = thirst - 1
-                        hunger = hunger - 1
-                        happiness = happiness - 1
-                    end
-
-                    if thirst == 0 and hunger > 0 then
-                        live = live - 1
-                        hunger = hunger - 1
-                        happiness = happiness - 1
-                    end
-
-                    if hunger == 0 and thirst > 0 then
-                        live = live - 1
-                        thirst = thirst - 1
-                        happiness = happiness - 1
-                    end
-
-                    if hunger == 0 and thirst == 0 then
-                        live = live - 1
-                    end
-
-                    if dirt > 75 then
-                        live = live - 2
-                        happiness = happiness - 1
-                    end
-
-                    if dirt > 50 then
-                        happiness = happiness - 1
-                    end
-
-                    if hunger <= 0 then hunger = 0 end
-                    if thirst <= 0 then thirst = 0 end
-                    if dirt <= 0 then dirt = 0 end
-                    if dirt >= 100 then dirt = 100 end
-                    if happiness <= 0 then happiness = 0 end
-
-                    updated = true
-
-                    if updated then
-                        local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                        MySQL.update('UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, happiness = ?  WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, happiness, petid, activepet })
-                    end
-                else
-                    if live <= 0 then live = 0 end
-                    if hunger > 0 then hunger = 0 end
-                    if thirst > 0 then thirst = 0 end
-                    if dirt < 100 then dirt = 100 end
-                    if happiness > 0 then happiness = 0 end
-
-                    updated = true
-
-                    if updated then
-                        if daysPassed == Config.PetDieAge then
-                            -- delete pet
-                            MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
-
-                            local discordMessage = string.format(
-                                "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died of old age!**",
-                                owner,
-                                petid,
-                                petname
-                            )
-
-                            sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
-
-                            -- telegram message to the pet owner
-                            MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                            {   owner,
-                                'Pet Owner',
-                                '22222222',
-                                'Pet Stables',
-                                petname..' passed away',
-                                os.date("%x"),
-                                'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
-                            })
-                        else
-                            local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {owner, true})
-                            MySQL.update('UPDATE tbrp_companions SET live = ?, hunger = ?, thirst = ?, dirt = ?, happiness = ?, WHERE dogid = ? AND active = ?', {live, hunger, thirst, dirt, happiness, petid, activepet })
-
-                            local discordMessage = string.format(
-                                "Citizenid:** %s\n**Ingame Pet ID:** %d\n**Name Pet belonging to:** %s died for a bad master!**",
-                                owner,
-                                petid,
-                                petname
-                            )
-
-                            sendToDiscord(16753920,	"Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
-                        end
-                    end
-                end
+        if updated then
+            local activepet = MySQL.scalar.await( 'SELECT id FROM tbrp_companions WHERE dogid = ? AND active = ?', {petid, true})
+            if activepet then
+                MySQL.update( 'UPDATE tbrp_companions SET dirt = ?, live = ?, hunger = ?, thirst = ?, growth = ?, happiness = ? WHERE dogid = ? AND active = ?', {dirt, live, hunger, thirst, growth, happiness, petid, activepet})
             end
+        end
 
+        -- Manejo de la muerte de la mascota
+        handlePetDeath(pet, daysPassed, id, owner, petid, petname)
+
+        ::continue::
     end
 
-    ::continue::
-
-    if Config.CycleNotify then print('pet stats check complete') end
+    if Config.CycleNotify then 
+        print('pet stats check complete')
+    end
 end)
+
+function updatePetStats(live, hunger, thirst, growth, happiness, dirt)
+    local updated = false
+    if growth < 100 then
+        if live > 0 then
+            thirst = thirst - 1
+            hunger = hunger - 1
+            growth = growth + 1
+
+            if thirst < 75 or hunger < 75 then
+                happiness = happiness - 1
+            end
+
+            if thirst < 25 or hunger < 25 then
+                live = live - 1
+                thirst = thirst - 1
+                hunger = hunger - 1
+                happiness = happiness - 1
+            end
+
+            if thirst == 0 and hunger > 0 then
+                live = live - 1
+                hunger = hunger - 1
+                happiness = happiness - 1
+            end
+
+            if hunger == 0 and thirst > 0 then
+                live = live - 1
+                thirst = thirst - 1
+                happiness = happiness - 1
+            end
+
+            if hunger == 0 and thirst == 0 then
+                live = live - 1
+                happiness = happiness - 1
+            end
+
+            if dirt > 75 then
+                live = live - 2
+                happiness = happiness - 1
+            end
+
+            if dirt > 50 then
+                happiness = happiness - 1
+            end
+
+            hunger = math.max(hunger, 0)
+            thirst = math.max(thirst, 0)
+            dirt = math.min(math.max(dirt, 0), 100)
+            growth = math.min(growth, 100)
+            happiness = math.max(happiness, 0)
+            updated = true
+        else
+            if live <= 0 then live = 0 end
+            if hunger > 0 then hunger = 0 end
+            if thirst > 0 then thirst = 0 end
+            if dirt < 100 then dirt = 100 end
+            if happiness > 0 then happiness = 0 end
+            updated = true
+        end
+    else -- growth >= 100
+        if live > 0 then
+            thirst = thirst - 1
+            hunger = hunger - 1
+
+            if thirst < 75 or hunger < 75 then
+                happiness = happiness - 1
+            end
+
+            if thirst < 25 or hunger < 25 then
+                live = live - 1
+                thirst = thirst - 1
+                hunger = hunger - 1
+                happiness = happiness - 1
+            end
+
+            if thirst == 0 and hunger > 0 then
+                live = live - 1
+                hunger = hunger - 1
+                happiness = happiness - 1
+            end
+
+            if hunger == 0 and thirst > 0 then
+                live = live - 1
+                thirst = thirst - 1
+                happiness = happiness - 1
+            end
+
+            if hunger == 0 and thirst == 0 then
+                live = live - 1
+            end
+
+            if dirt > 75 then
+                live = live - 2
+                happiness = happiness - 1
+            end
+
+            if dirt > 50 then
+                happiness = happiness - 1
+            end
+
+            hunger = math.max(hunger, 0)
+            thirst = math.max(thirst, 0)
+            dirt = math.min(math.max(dirt, 0), 100)
+            happiness = math.max(happiness, 0)
+            updated = true
+        else
+            if live <= 0 then live = 0 end
+            if hunger > 0 then hunger = 0 end
+            if thirst > 0 then thirst = 0 end
+            if dirt < 100 then dirt = 100 end
+            if happiness > 0 then happiness = 0 end
+            updated = true
+        end
+    end
+
+    return live, hunger, thirst, growth, happiness, dirt, updated
+end
+
+function handlePetDeath(pet, daysPassed, id, owner, petid, petname)
+    if daysPassed == Config.PetDieAge then
+        -- delete pet
+        MySQL.update('DELETE FROM tbrp_companions WHERE id = ?', {id})
+
+        local discordMessage = "Citizenid:** "..owner.."\n**Ingame Pet ID:** "..petid.."\n**Name Pet belonging to:** "..petname.." died of old age!!**"
+        sendToDiscord(16753920, "Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+
+        -- telegram message to the pet owner
+        MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        {   owner,
+            'Pet Owner',
+            '22222222',
+            'Pet Stables',
+            petname..' passed away',
+            os.date("%x"),
+            'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
+        })
+    elseif pet.live <= 0 then
+        local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE dogid = ? AND active = ?', {petid, true})
+        MySQL.update('UPDATE tbrp_companions SET live = ?, hunger = ?, thirst = ?, dirt = ?, happiness = ? WHERE dogid = ? AND active = ?', 
+            {pet.live, pet.hunger, pet.thirst, pet.dirt, pet.happiness, petid, activepet}
+        )
+
+        local discordMessage = "Citizenid:** "..owner.."\n**Ingame Pet ID:** "..petid.."\n**Name Pet belonging to:** "..petname.."died for a bad master!**"
+        sendToDiscord(16753920, "Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+
+        -- telegram message to the pet owner
+        MySQL.insert('INSERT INTO telegrams (citizenid, recipient, sender, sendername, subject, sentDate, message) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        {   owner,
+            'Pet Owner',
+            '22222222',
+            'Pet Stables',
+            petname..' passed away',
+            os.date("%x"),
+            'I am sorry to inform you that your pet '..petname..' has passed away, please visit your friendly pet trainer to discuss a replacement!',
+        })
+    end
+end
+
 
 --------------------------------------
 -- TRACK EVENT
