@@ -914,33 +914,33 @@ Citizen.CreateThread(function() -- call
 				end)
 			end
 		end
-        local size = GetNumberOfEvents(0)
-        if size > 0 then
-            for i = 0, size - 1 do
-                local eventAtIndex = GetEventAtIndex(0, i)
-                if eventAtIndex == `EVENT_PLAYER_PROMPT_TRIGGERED` then
-                    local eventDataSize = 10
-                    local eventDataStruct = DataView.ArrayBuffer(8*eventDataSize) -- buffer must be 8*eventDataSize or bigger
-                    for a = 0, eventDataSize -1 do
-                      eventDataStruct:SetInt32(8*a ,0)
-                    end
-                    local is_data_exists = Citizen.InvokeNative(0x57EC5FA4D4D6AFCA, 0, i, eventDataStruct:Buffer(), eventDataSize)
+        -- local size = GetNumberOfEvents(0)
+        -- if size > 0 then
+        --     for i = 0, size - 1 do
+        --         local eventAtIndex = GetEventAtIndex(0, i)
+        --         if eventAtIndex == `EVENT_PLAYER_PROMPT_TRIGGERED` then
+        --             local eventDataSize = 10
+        --             local eventDataStruct = DataView.ArrayBuffer(8*eventDataSize) -- buffer must be 8*eventDataSize or bigger
+        --             for a = 0, eventDataSize -1 do
+        --               eventDataStruct:SetInt32(8*a ,0)
+        --             end
+        --             local is_data_exists = Citizen.InvokeNative(0x57EC5FA4D4D6AFCA, 0, i, eventDataStruct:Buffer(), eventDataSize)
 
-                    if is_data_exists then
+        --             if is_data_exists then
 
-                        if eventDataStruct:GetInt32(0) == 33 then
-                            if dogPed == eventDataStruct:GetInt32(16) then
-                                if Config.StoreFleedPet then
-                                    FleePetStore()
-                                else
-                                    FleePet()
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
+        --                 if eventDataStruct:GetInt32(0) == 33 then
+        --                     if dogPed == eventDataStruct:GetInt32(16) then
+        --                         if Config.StoreFleedPet then
+        --                             FleePetStore()
+        --                         else
+        --                             FleePet()
+        --                         end
+        --                     end
+        --                 end
+        --             end
+        --         end
+        --     end
+        -- end
 		Wait(1)
 	end
 end)
@@ -1917,49 +1917,49 @@ end
 --------------------------------------
 -- UPDATE PET FED / CRECIMIENTO DE PET DEPENDE DE LA XP PARA CONSEGUIR MAS FUNCIONES
 --------------------------------------
-RegisterNetEvent('tbrp_companions:client:UpdateDogFed')
-AddEventHandler('tbrp_companions:client:UpdateDogFed', function (newXP, growAnimal)
-    RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data)
-		if (data) then
-			if Config.RaiseAnimal and growAnimal then
-				dogXP = newXP
+-- RegisterNetEvent('tbrp_companions:client:UpdateDogFed')
+-- AddEventHandler('tbrp_companions:client:UpdateDogFed', function (newXP, growAnimal)
+--     RSGCore.Functions.TriggerCallback('tbrp_companions:server:GetActivePet', function(data)
+-- 		if (data) then
+-- 			if Config.RaiseAnimal and growAnimal then
+-- 				dogXP = newXP
 
-				local halfGrowth = Config.FullGrownXp / 2
-				if dogXP >= Config.FullGrownXp then
-					SetPedScale(dogPed, 1.0)
-					-- AddStayPrompts(dogPed)
-					-- AddHuntModePrompts(dogPed)
-					--Use this for the XP system with pets
-				elseif dogXP >= halfGrowth then
-					SetPedScale(dogPed, 0.8)
-					-- AddStayPrompts(dogPed)
-				else
-					SetPedScale(dogPed, 0.6)
-				end
-			end
+-- 				local halfGrowth = Config.FullGrownXp / 2
+-- 				if dogXP >= Config.FullGrownXp then
+-- 					SetPedScale(dogPed, 1.0)
+-- 					-- AddStayPrompts(dogPed)
+-- 					-- AddHuntModePrompts(dogPed)
+-- 					--Use this for the XP system with pets
+-- 				elseif dogXP >= halfGrowth then
+-- 					SetPedScale(dogPed, 0.8)
+-- 					-- AddStayPrompts(dogPed)
+-- 				else
+-- 					SetPedScale(dogPed, 0.6)
+-- 				end
+-- 			end
 
-			isPetHungry = false
-			FeedTimer = 0
-			notifyHungry = false
-		end
-	end)
-end)
+-- 			isPetHungry = false
+-- 			FeedTimer = 0
+-- 			notifyHungry = false
+-- 		end
+-- 	end)
+-- end)
 
 --------------------------------------
 -- function
 --------------------------------------
 
-function SecondsToClock(seconds)
-	local seconds = tonumber(seconds)
-	if seconds <= 0 then
-		return "00:00:00";
-	else
-		hours = string.format("%02.f", math.floor(seconds/3600));
-		mins = string.format("%02.f", math.floor(seconds/60 - (hours*60)));
-		secs = string.format("%02.f", math.floor(seconds - hours*3600 - mins *60));
-		return hours..":"..mins..":"..secs
-	end
-end
+-- function SecondsToClock(seconds)
+-- 	local seconds = tonumber(seconds)
+-- 	if seconds <= 0 then
+-- 		return "00:00:00";
+-- 	else
+-- 		hours = string.format("%02.f", math.floor(seconds/3600));
+-- 		mins = string.format("%02.f", math.floor(seconds/60 - (hours*60)));
+-- 		secs = string.format("%02.f", math.floor(seconds - hours*3600 - mins *60));
+-- 		return hours..":"..mins..":"..secs
+-- 	end
+-- end
 
 function SET_ANIMAL_TUNING_BOOL_PARAM (animal, p1, p2)
 	return Citizen.InvokeNative(0x9FF1E042FA597187, animal, p1, p2)

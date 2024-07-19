@@ -587,8 +587,8 @@ local function handlePetDeath(pet, daysPassed, id, owner, petid, petname)
     elseif pet.live <= 0 then
         local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE dogid = ? AND active = ?', {petid, true})
         MySQL.update('UPDATE tbrp_companions SET live = ?, hunger = ?, thirst = ?, dirt = ?, happiness = ? WHERE dogid = ? AND active = ?', {pet.live, pet.hunger, pet.thirst, pet.dirt, pet.happiness, petid, activepet})
-        local discordMessage = "Citizenid:** "..owner.."\n**Ingame Pet ID:** "..petid.."\n**Name Pet belonging to:** "..petname.."died for a bad master!**"
-        sendToDiscord(16753920, "Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
+        -- local discordMessage = "Citizenid:** "..owner.."\n**Ingame Pet ID:** "..petid.."\n**Name Pet belonging to:** "..petname.."died for a bad master!**"
+        -- sendToDiscord(16753920, "Companions | PET DIED", discordMessage, "Companions for RSG Framework", "petinfo")
     end
 end
 
