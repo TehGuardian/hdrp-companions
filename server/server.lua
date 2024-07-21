@@ -421,7 +421,7 @@ RegisterServerEvent('hdrp-companions:server:setpetAttributes', function(number)
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
     local dirtpet = MySQL.scalar.await('SELECT dirt FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-    local dirt = dirtpet + number
+    local dirt = tonumber(dirtpet) + number
     if dirt >= 100 then
         dirt = 100
         MySQL.update("UPDATE tbrp_companions SET dirt = ? WHERE id = ? AND citizenid = ?", { dirt, activepet, Player.PlayerData.citizenid})
@@ -435,7 +435,7 @@ RegisterServerEvent('hdrp-companions:server:setpetAttributesGrowth', function(nu
     local Player = RSGCore.Functions.GetPlayer(src)
     local activepet = MySQL.scalar.await('SELECT id FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
     local growthpet = MySQL.scalar.await('SELECT growth FROM tbrp_companions WHERE citizenid = ? AND active = ?', {Player.PlayerData.citizenid, true})
-    local growth = growthpet + number
+    local growth = tonumber(growthpet) + number
     if growth >= 100 then
         growth = 100
         MySQL.update("UPDATE tbrp_companions SET growth = ? WHERE id = ? AND citizenid = ?", { growth, activepet, Player.PlayerData.citizenid})

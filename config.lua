@@ -103,11 +103,11 @@ Config.PetsLocations = {
         shopdata = { animaltrap, birdtrap, reptiltrap, fishtrap}},
     {
         stablepetid = 'blackwater',
-		name = Lang:t('label.petshop'),
+        name = Lang:t('label.petshop'),
         coords = vector3(-939.59, -1238.36, 52.07),
         npcmodel = `u_m_m_bwmstablehand_01`,
         npccoords = vector4(-939.59, -1238.36, 52.07, 238.11),
-		npcpetmodel = `A_C_DogAustralianSheperd_01`,
+        npcpetmodel = `A_C_DogAustralianSheperd_01`,
         npcpetcoords = vector4(-937.47, -1235.65, 52.09, 208.05),
 
         Ring = true,
@@ -117,7 +117,26 @@ Config.PetsLocations = {
         showblip = true,
         blipsprite = 'blip_taxidermist',
         blipscale = 0.1,
-        shopdata = { animaltrap, birdtrap, reptiltrap, fishtrap}},
+        shopdata = { animaltrap, birdtrap, reptiltrap, fishtrap}
+    },
+    {
+        stablepetid = 'guarma',
+        name = Lang:t('label.petshop'),
+        coords = vector3(-5584.34, -3065.37, 2.39),
+        npcmodel = `u_m_m_bwmstablehand_01`,
+        npccoords = vector4(-5584.34, -3065.37, 2.39, 2.41),
+        npcpetmodel = `A_C_DogAustralianSheperd_01`,
+        npcpetcoords = vector4(-5582.91, -3064.95, 2.36, 79.49),
+
+        Ring = true,
+        ActiveDistance = 1.5,
+        scenario = 'MP_LOBBY_STANDING_C',
+
+        showblip = false,
+        blipsprite = 'blip_taxidermist',
+        blipscale = 0.1,
+        shopdata = { animaltrap, birdtrap, reptiltrap, fishtrap}
+    },
 }
 
 ---------------------------------
@@ -160,8 +179,8 @@ Config.XpPerDrink        = math.random(5, 10)   -- The amount of XP every feed g
 Config.PetAttributes = {
     FollowDistance  = 3,
     Invincible      = false,
-    SpawnLimiter    = 100, -- Set this to limit how often a pet can be spawned or 0 to disable it
-    DeathCooldown   = 300, -- Time before a pet can be respawned after dying
+    SpawnLimiter    = 5, --second  Set this to limit how often a pet can be spawned or 0 to disable it
+    DeathCooldown   = 10, -- Time before a pet can be respawned after dying
 }
 
 Config.CallPetKey         = true --Set to true to use the CallPet hotkey below
@@ -169,24 +188,20 @@ Config.CallPetKey         = true --Set to true to use the CallPet hotkey below
 Config.Prompt = {
     CallPet    = 0xD8F73058, -- U
 
-    Actions    = 0xCEFD9220, -- E
+    Actions    = 0x9959A6F0, -- C
     PetMenu    = 0x63A38F2C, -- B
 
-    PetAttack  = 0xDB096B85, -- CTRL INPUT_INTERACT_HORSE_BRUSH
-    PetTrack   = 0x8FFC75D6, -- SHIFT INPUT_LOOK_BEHIND
+    PetAttack  = 0x63A38F2C, -- B INPUT_INTERACT_HORSE_BRUSH
+    PetTrack   = 0xB2F377E8, -- F INPUT_MELEE_ATTACK
 }
 
 Config.NoFear           = true --Set this to true if you are using Bears/Wolves as pets so that your horses won't be in constant fear and wont get stuck on the eating dead body animation.
 Config.RaiseAnimal      = true -- If this is enabled, you will have to feed your animal for it to gain XP and grow. Only full grown pets can use commands (halfway you get the Stay command)
 Config.FullGrownXp      = 1000 -- The amount of XP that it is fully grown. At the halfway point the pet will grow to 50% of max size.
 
--- Config.DefensiveMode    = true --If set to true, pets will become hostile to anything you are in combat with
--- Config.SearchRadius     = 50.0 -- How far the pet will search for a hunted animal. Always a float value i.e 50.0
+Config.DefensiveMode    = true --If set to true, pets will become hostile to anything you are in combat with
+Config.SearchRadius     = 50.0 -- How far the pet will search for a hunted animal. Always a float value i.e 50.0
 -- Config.GrowthIncrease    = math.random(10, 20)
--- Config.GrowthTimer       = 60000 -- 60000 = every 1 min / testing 1000 = 1 seconds
-
--- Config.NotifyWhenHungry = true -- Puts up a little notification letting you know your pet can be fed. 
--- Config.FeedInterval     = 1800 -- 1800 = 30 min, How often in seconds the pet will want to be fed
 
 --The attack command sets your animal to attack a target
 Config.AttackCommand    = true -- Set true to be able to send your pet to attack a target you are locked on (holding right-click on them)
@@ -344,7 +359,103 @@ Config.PetBuySpawn = {
         petprice = 350,
         petname = 'Australian Sheperd',
         stablepetid = 'blackwater'
-    }
+    },
+    -- guarma
+    -- reptile
+    {
+        petcoords = vector4(-5572.65, -3062.22, 2.30, 118.12),
+        petmodel = 'A_C_Iguana_01', -- A_C_IguanaDesert_01  A_C_Squirrel_01  A_C_Snake_01
+        petprice = 200,
+        petname = 'Hound',
+        stablepetid = 'guarma',
+    },
+    {
+        petcoords = vector4(-5574.81, -3063.08, 2.65, 260.43),
+        petmodel = 'A_C_IguanaDesert_01',
+        petprice = 200,
+        petname = 'Hound',
+        stablepetid = 'guarma',
+    },
+    {
+        petcoords = vector4(-5574.49, -3061.38, 3.40, 217.51),
+        petmodel = 'A_C_Snake_01',
+        petprice = 200,
+        petname = 'Hound',
+        stablepetid = 'guarma',
+    },
+    -- cats
+    {
+        petcoords = vector4(-5574.61, -3049.03, 0.68, 326.73),
+        petmodel = 'A_C_LionMangy_01', -- A_C_Panther_01  A_C_Cougar_01  A_C_Cat_01
+        petprice = 500,
+        petname = 'Collie',
+        stablepetid = 'guarma',
+    },
+    {
+        petcoords = vector4(-5580.11, -3053.68, 1.36, 168.49),
+        petmodel = 'A_C_Panther_01',
+        petprice = 500,
+        petname = 'Collie',
+        stablepetid = 'guarma',
+    },
+    {
+        petcoords = vector4(-5576.90, -3058.34, 2.10, 158.43),
+        petmodel = 'A_C_Cougar_01',
+        petprice = 500,
+        petname = 'Collie',
+        stablepetid = 'guarma',
+    },
+    {
+        petcoords = vector4(-5591.42, -3072.23, 2.45, 319.26),
+        petmodel = 'A_C_Cat_01',
+        petprice = 500,
+        petname = 'Collie',
+        stablepetid = 'guarma',
+    },
+    -- birds
+    -- {
+    --     petcoords = vector4(-5588.38671875, -3071.296875, 3.48518502712249, 53.85),
+    --     petmodel = 'A_C_Eagle_01', -- A_C_Owl_01  A_C_Hawk_01  A_C_Parrot_01  A_C_Woodpecker_01  A_C_SongBird_01  A_C_Cardinal_01  A_C_Bat_01
+    --     petprice = 225,
+    --     petname = 'Fox hound',
+    --     stablepetid = 'guarma',
+    -- },
+    -- {
+    --     petcoords = vector4(-5588.7841796875, -3071.784423828125, 3.49062204360961, 53.85),
+    --     petmodel = 'A_C_Owl_01',
+    --     petprice = 225,
+    --     petname = 'Fox hound',
+    --     stablepetid = 'guarma',
+    -- },
+    -- {
+    --     petcoords = vector4(-5589.1376953125, -3072.22119140625, 3.49324095249176, 53.85),
+    --     petmodel = 'A_C_Hawk_01',
+    --     petprice = 225,
+    --     petname = 'Fox hound',
+    --     stablepetid = 'guarma',
+    -- },
+    -- {
+    --     petcoords = vector4(-5589.57080078125, -3072.650146484375, 3.49686598777771, 53.85),
+    --     petmodel = 'A_C_Parrot_01',
+    --     petprice = 225,
+    --     petname = 'Fox hound',
+    --     stablepetid = 'guarma',
+    -- },
+    -- wilds
+    {
+        petcoords = vector4(-5583.70, -3048.80, 1.09, 325.51),
+        petmodel = 'A_C_Wolf',
+        petprice = 350,
+        petname = 'Australian Sheperd',
+        stablepetid = 'guarma',
+    },
+    {
+        petcoords = vector4(-5576.43, -3046.67, 0.65, 286.39),
+        petmodel = 'A_C_Bear_01',
+        petprice = 120,
+        petname = 'Poodle',
+        stablepetid = 'guarma',
+    },
 }
 
 -------------------------

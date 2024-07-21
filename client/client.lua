@@ -17,6 +17,15 @@ local dogLevel = 0
 local closestStablePets = nil
 local SpawnedPetshopBilps ={}
 
+local RetrievedEntities = {}
+local Retrieved = true
+local Retrieving = false
+local HuntMode = false
+local fetchedObj = nil
+
+local recentlyCombat = 0
+local recentlySpawned = 0
+
 --------------------------------------
 -- PROMPTS E 'Feed' / 'Pet Attack' / C 'Pet Track' / 'Follow' / C 'Stay' / F 'Hunt Mode' / 
 --------------------------------------
@@ -28,7 +37,8 @@ local TrackPrompt = {}
 
 local AddedAttackPrompt = {} -- Add the entities you've already targeted so it doesn't try adding the prompt over and over again. 
 local AddedTrackPrompt = {} -- Add the entities you've already targeted so it doesn't try adding the prompt over and over again. 
-
+local AddedActionsPrompt = {} -- Add the entities you've already targeted so it doesn't try adding the prompt over and over again. 
+local AddedMenuPrompt = {} -- Add the entities you've already targeted so it doesn't try adding the prompt over and over again. 
 
 local function SetPetAttributes(entity)
     -- | SET_ATTRIBUTE_POINTS | --
@@ -669,9 +679,6 @@ local function SpawnPet()
 
 				followOwner(dogPed, player)
 
-				if isdead and Config.PetAttributes.Invincible == false then
-					RSGCore.Functions.Notify(Lang:t('success.pethealed'), 'success', 3000)
-				end
 				-- end of overpower settings
                 -- end set pet health/stamina/ability/speed/acceleration (increased by pet training)
 
@@ -720,6 +727,7 @@ local function SpawnPet()
 
                 -- movePetToPlayer()
 
+
                 Wait(5000)
 
                 dogSpawned = true
@@ -730,9 +738,40 @@ local function SpawnPet()
     end)
 end
 
+RegisterNetEvent('hdrp-companions:client:spawndog')
+AddEventHandler('hdrp-companions:client:spawndog', function ()
+	if dogPed then
+		RSGCore.Functions.Notify(Lang:t('info.petalreadyhere'), 'info', 3000)
+ 	else
+		if recentlySpawned <= 0 then
+			recentlySpawned = Config.PetAttributes.SpawnLimiter
+			RSGCore.Functions.Notify('info dogSpawned', 'info', 3000)
+		else
+			RSGCore.Functions.Notify(Lang:t('info.petspawning', {recentlySpawned = recentlySpawned}), 'info', 3000)
+			return
+		end
+
+        SpawnPet()
+
+		-- local EntityIsDead = false
+		-- if (dogPed ~= nil) then
+		-- 	EntityIsDead = IsEntityDead(dogPed)
+		-- end
+
+        -- if EntityIsDead then
+        --     SpawnPet()
+		-- else
+        --     if Config.PetAttributes.Invincible == false then
+        --         RSGCore.Functions.Notify(Lang:t('success.pethealed'), 'success', 3000)
+        --     else
+        --         SpawnPet()
+        --     end
+		-- end
+	end
+end)
+
 RegisterCommand("callpet", function() --  COMMAND
-	SpawnPet()
-	Wait(3000) -- Spam protect
+    TriggerEvent('hdrp-companions:client:spawndog')
 end, false)
 
 ---------------
@@ -905,8 +944,9 @@ Citizen.CreateThread(function() -- call
                         TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, 'CALLING_WHISTLE_01', 1)
 
 						if not DogCalled and (distance > 100.0) then
-							SpawnPet()
-							Wait(3000) -- Spam protect
+							-- SpawnPet()
+							-- Wait(3000) -- Spam protect
+                            TriggerEvent('hdrp-companions:client:spawndog')
 						else
 							followOwner(dogPed, PlayerPedId())
 						end
@@ -1052,16 +1092,16 @@ Citizen.CreateThread(function()
 end)
 
 -- save pet attributes 
--- Citizen.CreateThread(function()
---     while true do
---         local sleep = 5000
---         local petdirt = Citizen.InvokeNative(0x147149F2E909323C, dogPed, 16, Citizen.ResultAsInteger())
---         if dogPed ~= 0 then
---             TriggerServerEvent('hdrp-companions:server:setpetAttributes', petdirt)
---         end
---         Wait(sleep)
---     end
--- end)
+Citizen.CreateThread(function()
+    while true do
+        local sleep = 5000
+        local petdirt = Citizen.InvokeNative(0x147149F2E909323C, dogPed, 16, Citizen.ResultAsInteger())
+        if dogPed ~= 0 then
+            TriggerServerEvent('hdrp-companions:server:setpetAttributes', petdirt)
+        end
+        Wait(sleep)
+    end
+end)
 
 -----------------
 -- Pet menu Shop
@@ -1532,9 +1572,8 @@ Citizen.CreateThread(function()
 						elseif not Config.TrackOnly.Animals and not Config.TrackOnly.NPC and not Config.TrackOnly.Players then
 							AddTrackPrompts(entity)
 							AddedTrackPrompt[entity] = true
-					
 						end
-					end				
+					end
 				end
 			end
 		else
@@ -1629,7 +1668,7 @@ AddEventHandler('hdrp-companions:client:playerbrushpet', function(itemName)
 
     Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), dogPed, `INTERACTION_DOG_PATTING`, 0, 0)
 
-    Wait(6000)
+    Wait(8000)
 
     Citizen.InvokeNative(0xE3144B932DFDFF65, dogPed, 0.0, -1, 1, 1)
     ClearPedEnvDirt(dogPed)
@@ -1708,211 +1747,78 @@ local function GetClosestFightingPed(playerPed, radius)
 end
 
 --------------------------------------
--- Main Thread - Checks if animal can hunt or is hungry, checks timers, etc.
+-- Main Thread - Checks if animal can hunt or is checks timers, etc. -- hungry, 
 --------------------------------------
--- Citizen.CreateThread(function()
--- 	while true do
--- 		Citizen.Wait(1000)
--- 		if not Config.RaiseAnimal then
--- 			if dogPed and not Retrieving and not isPetHungry and HuntMode then --Checking to see if your pet is active, not retriving and not hungry
--- 				local ped = PlayerPedId()
--- 				local ClosestPed = GetClosestAnimalPed(ped,Config.SearchRadius)
--- 				local pedType = GetPedType(ClosestPed)		  			
--- 				if pedType == 28 and IsEntityDead(ClosestPed) and not RetrievedEntities[ClosestPed] then
--- 				   local whoKilledPed = GetPedSourceOfDeath(ClosestPed)
--- 					if ped == whoKilledPed then -- Make sure the dead animal was killed by player or else it will try to steal other players hunts
--- 					local model = GetEntityModel(ClosestPed)
--- 					  for k,v in pairs(Config.Animals) do
--- 						  if model == k then
--- 						  RetrieveKill(ClosestPed)
--- 						  end
--- 					  end
--- 					else
--- 						RetrievedEntities[ClosestPed] = true --Even though it wasn't retrieved, I do this so it stops trying to check if it should retrieve this ped
--- 					end
--- 				 end
--- 			end
--- 		else
--- 			if dogPed and not Retrieving and dogXP >= Config.FullGrownXp and not isPetHungry and HuntMode then --Checking to see if your pet is active, not retriving and not hungry
--- 				local ped = PlayerPedId()
--- 				local ClosestPed = GetClosestAnimalPed(ped,Config.SearchRadius)
--- 				local pedType = GetPedType(ClosestPed)		  			
--- 				if pedType == 28 and IsEntityDead(ClosestPed) and not RetrievedEntities[ClosestPed] then
--- 				   local whoKilledPed = GetPedSourceOfDeath(ClosestPed)
--- 					if ped == whoKilledPed then -- Make sure the dead animal was killed by player or else it will try to steal other players hunts
--- 					local model = GetEntityModel(ClosestPed)
--- 					  for k,v in pairs(Config.Animals) do
--- 						  if model == k then
--- 						  RetrieveKill(ClosestPed)
--- 						  end
--- 					  end
--- 					else
--- 						RetrievedEntities[ClosestPed] = true --Even though it wasn't retrieved, I do this so it stops trying to check if it should retrieve this ped
--- 					end
--- 				 end
--- 			end
--- 		end
--- 		if dogPed then
--- 			if Config.DefensiveMode and recentlyCombat <= 0 then
--- 				local ped = PlayerPedId()
--- 				local enemyPed = GetClosestFightingPed(ped, 50.0)
--- 				if enemyPed then
--- 					ClearPedTasks(dogPed)
--- 					TaskCombatPed(dogPed,enemyPed,0,16)
--- 					recentlyCombat = 15
--- 				end
--- 			end
--- 			FeedTimer = FeedTimer + 1
--- 			if Config.FeedInterval <= FeedTimer then
--- 			 isPetHungry = true
--- 				if not AddedFeedPrompts then --Constantly re-adding the prompts breaks them, so I added this to only do it once. not AddedFeedPrompts
--- 					local itemSet = CreateItemset(true)
--- 					local size = Citizen.InvokeNative(0x59B57C4B06531E1E, GetEntityCoords(PlayerPedId()), 3.0, itemSet, 1, Citizen.ResultAsInteger())
--- 					if size > 0 then
--- 						for index = 0, size - 1 do
--- 							local entity = GetIndexedItemInItemset(index, itemSet)
--- 								if entity == dogPed then -- If pet is your pet
--- 									AddFeedPrompts(entity)
--- 									AddedFeedPrompts = true
--- 								end
--- 						end
--- 					end			
--- 					if IsItemsetValid(itemSet) then
--- 					   DestroyItemset(itemSet)
--- 					end
--- 				end
--- 				if not notifyHungry and Config.NotifyWhenHungry then
--- 					RSGCore.Functions.Notify(Lang:t('info.hungry'), 'info', 3000)
--- 					notifyHungry = true
--- 				end
--- 			end
-
--- 			if dogPed and IsEntityDead(dogPed) then
--- 				recentlySpawned = Config.PetAttributes.DeathCooldown
--- 				RSGCore.Functions.Notify(Lang:t('error.petdead'), 'error', 3000)
--- 				Wait(3000)
--- 				DeleteEntity(dogPed)
--- 				dogPed = nil
--- 			end
--- 		end
--- 		if recentlySpawned > 0 then
--- 			recentlySpawned = recentlySpawned - 1
--- 		end
--- 		if recentlyCombat > 0 then
--- 			recentlyCombat = recentlyCombat - 1
--- 		end
--- 	end
--- end)
-
-------------------
--- spawnPet compare old code
-------------------
--- function spawnAnimal(model, player, x, y, z, h, skin, PlayerPedId, isdead, isshop, xp)
--- 	local EntityPedCoord = GetEntityCoords( player )
--- 	local EntitydogCoord = GetEntityCoords( dogPed )
-
--- 	if #( EntityPedCoord - EntitydogCoord ) > 100.0 or isshop or isdead then
-
--- 		if dogPed ~= nil then
--- 			DeleteEntity(dogPed)
--- 		end
-
--- 		dogXP = xp
--- 		dogPed = CreatePed(model, x, y, z, h, 1, 1 )
--- 		SET_PED_OUTFIT_PRESET( dogPed, skin )
--- 		-- SET_BLIP_TYPE( dogPed )
-
--- 		if Config.PetAttributes.Invincible then
--- 			SetEntityInvincible(dogPed, true)
--- 		end
-
--- 		AddFollowPrompts(dogPed)
-
--- 		if Config.NoFear then
--- 			Citizen.InvokeNative(0x013A7BA5015C1372, dogPed, true)
--- 			Citizen.InvokeNative(0x3B005FF0538ED2A9, dogPed)
--- 			Citizen.InvokeNative(0xAEB97D84CDF3C00B, dogPed, false)
--- 		end
-
--- 		SetPetAttributes(dogPed)
--- 		setPetBehavior(dogPed)
--- 		SetPedAsGroupMember(dogPed, GetPedGroupIndex(PlayerPedId))
-
--- 		if Config.RaiseAnimal then
--- 			local halfGrowth = Config.FullGrownXp / 2
--- 			if dogXP >= Config.FullGrownXp then
--- 				SetPedScale(dogPed, 1.0) --Use this for the XP system with pets
--- 				AddStayPrompts(dogPed)
--- 				AddHuntModePrompts(dogPed)
--- 			elseif dogXP >= halfGrowth then
--- 				SetPedScale(dogPed, 0.8)
--- 				AddStayPrompts(dogPed)
--- 			else
--- 				SetPedScale(dogPed, 0.6)
--- 			end
--- 		else
--- 			dogXP = Config.FullGrownXp
--- 			AddStayPrompts(dogPed)
--- 		end
-
--- 		while (GetScriptTaskStatus(dogPed, 0x4924437d) ~= 8) do
--- 			Wait(1000)
--- 		end
-
--- 		followOwner(dogPed, player)
-
--- 		if isdead and Config.PetAttributes.Invincible == false then
--- 			RSGCore.Functions.Notify(Lang:t('success.pethealed'), 'success', 3000)
--- 		end
--- 	end
--- end
-
--- RegisterNetEvent('hdrp-companions:client:spawndog')
--- AddEventHandler('hdrp-companions:client:spawndog', function (dog, skin, isInShop, xp, canTrack)
--- 	if dogPed then
--- 		RSGCore.Functions.Notify(Lang:t('info.petalreadyhere'), 'info', 3000)
--- 	else
--- 		if recentlySpawned <= 0 then
--- 			recentlySpawned = Config.PetAttributes.SpawnLimiter
--- 			RSGCore.Functions.Notify(Lang:t('info.dogSpawned'), 'info', 3000)
--- 		else
--- 			RSGCore.Functions.Notify(Lang:t('info.petspawning', {recentlySpawned = recentlySpawned}), 'info', 3000)
--- 			return
--- 		end
-
--- 		isPetHungry = false
--- 		FeedTimer = 0
--- 		notifyHungry = false
--- 		AddedFeedPrompts = false
--- 		TrackingEnabled = canTrack
-
--- 		local player = PlayerPedId()
--- 		local model = GetHashKey( dog )
--- 		local x, y, z, heading, a, b
-
--- 		if not isInShop then
--- 			x, y, z = table.unpack( GetOffsetFromEntityInWorldCoords( player, 0.0, -5.0, 0.3 ) )
--- 			a, b = GetGroundZAndNormalFor_3dCoord( x, y, z + 10 )
--- 		end
-
--- 		RequestModel( model )
-
--- 		while not HasModelLoaded( model ) do
--- 			Wait(500)
--- 		end
-
--- 		local EntityIsDead = false
--- 		if (dogPed ~= nil) then
--- 			EntityIsDead = IsEntityDead( dogPed )
--- 		end
-
--- 		if EntityIsDead then
--- 			spawnAnimal(model, player, x, y, b, heading, skin, PlayerPedId(), true, false, xp)
--- 		else
--- 			spawnAnimal(model, player, x, y, b, heading, skin, PlayerPedId(), false, false, xp)
--- 		end
--- 	end
--- end)
+CreateThread(function()
+	while true do
+		Wait(1000)
+		if not Config.RaiseAnimal then
+			-- if dogPed and not Retrieving and not isPetHungry and HuntMode then --Checking to see if your pet is active, not retriving and not hungry
+			if dogPed and not Retrieving and HuntMode then
+            local ped = PlayerPedId()
+				local ClosestPed = GetClosestAnimalPed(ped, Config.SearchRadius)
+				local pedType = GetPedType(ClosestPed)
+				if pedType == 28 and IsEntityDead(ClosestPed) and not RetrievedEntities[ClosestPed] then
+				   local whoKilledPed = GetPedSourceOfDeath(ClosestPed)
+					if ped == whoKilledPed then -- Make sure the dead animal was killed by player or else it will try to steal other players hunts
+					local model = GetEntityModel(ClosestPed)
+					  for k,v in pairs(Config.Animals) do
+						  if model == k then
+						  RetrieveKill(ClosestPed)
+						  end
+					  end
+					else
+						RetrievedEntities[ClosestPed] = true --Even though it wasn't retrieved, I do this so it stops trying to check if it should retrieve this ped
+					end
+				 end
+			end
+		else
+			-- if dogPed and not Retrieving and dogXP >= Config.FullGrownXp and not isPetHungry and HuntMode then --Checking to see if your pet is active, not retriving and not hungry
+            if dogPed and not Retrieving and dogXP >= Config.FullGrownXp and HuntMode then -- and data.hunger <= 25 
+				local ped = PlayerPedId()
+				local ClosestPed = GetClosestAnimalPed(ped, Config.SearchRadius)
+				local pedType = GetPedType(ClosestPed)
+				if pedType == 28 and IsEntityDead(ClosestPed) and not RetrievedEntities[ClosestPed] then
+				   local whoKilledPed = GetPedSourceOfDeath(ClosestPed)
+					if ped == whoKilledPed then -- Make sure the dead animal was killed by player or else it will try to steal other players hunts
+					local model = GetEntityModel(ClosestPed)
+					  for k, v in pairs(Config.Animals) do
+						  if model == k then
+						  RetrieveKill(ClosestPed)
+						  end
+					  end
+					else
+						RetrievedEntities[ClosestPed] = true --Even though it wasn't retrieved, I do this so it stops trying to check if it should retrieve this ped
+					end
+				 end
+			end
+		end
+		if dogPed then
+			if Config.DefensiveMode and recentlyCombat <= 0 then
+				local ped = PlayerPedId()
+				local enemyPed = GetClosestFightingPed(ped, 50.0)
+				if enemyPed then
+					ClearPedTasks(dogPed)
+					TaskCombatPed(dogPed,enemyPed, 0, 16)
+					recentlyCombat = 15
+				end
+			end
+			if dogPed and IsEntityDead(dogPed) then
+				recentlySpawned = Config.PetAttributes.DeathCooldown
+				RSGCore.Functions.Notify(Lang:t('error.petdead'), 'error', 3000)
+				Wait(3000)
+				DeleteEntity(dogPed)
+				dogPed = nil
+			end
+		end
+		if recentlySpawned > 0 then
+			recentlySpawned = recentlySpawned - 1
+		end
+		if recentlyCombat > 0 then
+			recentlyCombat = recentlyCombat - 1
+		end
+	end
+end)
 
 --------------------------------------
 -- UPDATE PET FED / CRECIMIENTO DE PET DEPENDE DE LA XP PARA CONSEGUIR MAS FUNCIONES
@@ -1972,24 +1878,3 @@ end
 function SET_PED_OUTFIT_PRESET (dog, preset)
 	return Citizen.InvokeNative(0x77FF8D35EEC6BBC4, dog, preset, 0)
 end
-
-------------- tbrp
-local keys = Config.Keys
-local pressTime = 0
-local pressLeft = 0
-local recentlySpawned = 0
-local currentPetPed = nil;
-local CurrentZoneActive = 0
-local petXP = 0
-local pets = Config.Pets
-local fetchedObj = nil
-local Retrieving = false
-local Retrieved = true
-local notifyHungry = false
-local RetrievedEntities = {}
-local FeedTimer = 0
-local recentlyCombat = 0
-local isPetHungry = false
-local TrackingEnabled = false
-local AddedFeedPrompts = false
-local HuntMode = false
